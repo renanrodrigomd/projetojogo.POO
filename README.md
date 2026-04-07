@@ -1,2 +1,2 @@
 # projetojogo.POO
-Repositório do projeto
+Repositório do projeto de jogo do professor Max!
