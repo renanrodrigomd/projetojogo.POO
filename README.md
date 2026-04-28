@@ -1,73 +1,205 @@
-# projetojogo.POO
-Repositório do projeto de jogo do professor Max!
+# 🎮 SmachTech: Invasion Robotics
 
-1 - Titulo do jogo: SmachTech: InvasionRobotics
+## 1. Título do Jogo
 
-2 - Descrição: SmachTech: InvasionRobotics será um jogo voltada para uma jogabilidade de ação onde os personagens não irão poder ficar parados quase nunca, a não ser que você queira ser derrotado no meio de sua jogatina. O jogo se passará em um ambiente de cidade caótica onde o nosso personagem terá que passar por muitas dificuldades para conseguir escapar desse mundo apocaliptico.
+**SmachTech: Invasion Robotics**
+Jogo de ação e plataforma em um mundo futurista dominado por robôs.
 
-A nossa ideia nesse jogo será construir um jogo voltado para turnos, ou seja, cada turno terá uma dificuldade até o último turno, onde será apresentado o boss final.
+---
 
-3 - Obejtivo: O jogador devera coletar alguns itens para conseguir passar das fases e a meta principal será sobreviver e chegar ao final.
+## 2. Descrição Geral
 
-4 - Personagem Principal: O personagem principal vai se chamar Jaelson, o personagem é filho do antagonista chamado de Joaildo, o personagem nasceu das loucuras de seu pai Joaildo, que estava obcecado pela criação de robôs que conseguiriam se mexer normalmente sem nenhuma inteferência de terceiros. Jaelson foi criado como um bebê de experimentos servindo a Joaildo como fonte de estudos para o aperfeiçoamento de seus robôs, até que um dia Jaelson se cansa e se revolta contra seu pai que agora ja possui partes mecânicas também, tendo como objetivo derrubar o império que seu pai construiu, com suas próprias mãos, em forma de vingança pelos tormentos que teve que passar até aquele momento.
+SmachTech: Invasion Robotics é um jogo de ação e plataforma com progressão por fases. O jogador enfrenta inimigos em uma cidade tecnológica destruída, exigindo movimentação constante e decisões rápidas para sobreviver.
 
- . O personagem irá se movimentar para a direita e esquerda ( eixo X ) e pular para cima (eixo Y).
+---
 
- . O personagem irá possuir os atributos de Vida, turnos, Armas.
+## 3. Objetivo do Jogo
 
-5 - Robôs Terrestres, Aêreos.
+O jogador deve:
 
- . Perseguição, Parado.
+* Sobreviver durante a fase
+* Derrotar inimigos
+* Coletar itens
+* Chegar ao final do mapa
 
- . Perda de Vidas e Efeitos visuais e sonoros.
+Objetivo final: completar todas as fases e derrotar Romero Merito
 
- 6 - O ambiente será formado por uma cidade destruída e tecnológica
+---
 
- . Prédios destruídos, fogo e pessoas
+## 4. Personagem Principal
 
- . Os itens serão dropados no chão pelos inimigos, além das armas que o personagem principal e que os robôs possuem, já o objetivo final será finalizar o turno chegando à determinada posição da esquerda para a direita
+**Nome:** Gebeto
 
- 7 - Por um sistema de velocidade de finalização do turno
+**Descrição:**
+Gebeto é um humano modificado criado por seu pai, um cientista obcecado pela criação de robôs autônomos. Após anos sendo usado como experimento, ele se rebela e parte em busca de vingança.
 
- . Matando robôs diminui o marco de velocidade, se matar robôs em sequencia irá multiplicar, funcionando como um bônus de diminuição de tempo
+**Movimentação:**
 
- . VelocidadeDoTurno <= 37seg: 3 Estrelas
-VelocidadeDoTurno <= 42seg: 2 Estrelas
-VelocidadeDoTurno => 50seg: 1 Estrela
+* Esquerda e direita (eixo X)
+* Pular (eixo Y)
 
-8 - A cada turno o jogador receberá 3 vidas
+**Atributos:**
 
-. O jogador perde ao encostar em um robô, entrar na área de uma explosão ou ao tomar um tiro
+* Vida
+* Armas
+* Tempo de fase
 
-. Recomeçará do começo do turno sem aprimoramentos
+---
 
-9 - 'Z' para esquerda
-'X' para atirar
-'C' para direita 
-'Space' para pular
+## 5. Inimigos e Obstáculos
 
-10 - O jogador vai clicar em 'START' para ir para o menu do jogo onde mostrará os turnos disponíveis junto das estrelas, as armas que ele pode escolher e o crafter. Após conferir a arma que está equipada ele escolherá o turno e aquela fase será carregada pronta para jogar
+**Tipos de inimigos:**
 
-. Alguns robôs o perseguem até tirar sua vida e outros ficam parados servindo de obstáculos, o objetivo do jogador é chegar na marca onde acaba a fase e matar robôs para conseguir as 3 estrelas com sucesso
+* Robôs terrestres
+* Robôs aéreos
 
-. Derrota = Perder vidas
-Vitória = Chegar no final do turno vivo
+**Comportamentos:**
 
-11 - Chegar na marca para a fase acabar e não repetir fases 
+* Perseguem o jogador
+* Permanecem parados como obstáculos
 
-. Colisão e coleta de drops dos inimigos
+**Colisão:**
 
-. Não atravessar paredes, não atravessar o chão e ultrapassar o cenário
+* O jogador perde vida ao encostar em inimigos, tiros ou explosões
 
-12 - Jogador
-Robôs
-Jogo
-Cenário
-Menu
-Turnos
+---
 
-13 - Colisão e sistema de vida
+## 6. Cenário (Mapa)
 
-. Menu, Turnos, Jogador
+Cidade futurista destruída.
 
-14 - Agachar, tiro nas diagonais, diferentes robôs, turnos diversos, maior escolha de aprimoramentos, etc.
+**Elementos:**
+
+* Prédios em ruínas
+* Fogo
+* Estruturas tecnológicas
+
+**Mapa:**
+
+* Caminhos com obstáculos e plataformas
+* Limites que não podem ser ultrapassados
+* Final da fase localizado à direita
+
+**Itens:**
+
+* Dropados por inimigos
+* Incluem armas e melhorias
+
+---
+
+## 7. Sistema de Pontuação
+
+Baseado no tempo de conclusão da fase:
+
+* ≤ 37 segundos → ⭐⭐⭐
+* ≤ 42 segundos → ⭐⭐
+* ≥ 50 segundos → ⭐
+
+**Bônus:**
+
+* Eliminar inimigos em sequência reduz o tempo (sistema de combo)
+
+---
+
+## 8. Sistema de Vida
+
+* 3 vidas por fase
+
+**Perde vida ao:**
+
+* Encostar em inimigos
+* Ser atingido por tiros
+* Entrar em explosões
+
+**Ao perder todas as vidas:**
+
+* A fase reinicia
+* Sem melhorias acumuladas
+
+---
+
+## 9. Controles
+
+* A → esquerda
+* D → direita
+* Space → pular
+* K → atirar
+
+---
+
+## 10. Fluxo do Jogo
+
+1. Menu principal
+2. Seleção de fase
+3. Escolha de equipamentos
+4. Início da fase
+5. Durante o jogo:
+
+   * Combate com inimigos
+   * Coleta de itens
+   * Progressão pelo mapa
+6. Final:
+
+   * Vitória: chegar ao final vivo
+   * Derrota: perder todas as vidas
+
+---
+
+## 11. Regras do Jogo
+
+* Não atravessar paredes ou o chão
+* Respeitar os limites do mapa
+* Itens coletados por contato
+* Colisões causam dano
+* O jogador deve chegar ao final da fase
+
+---
+
+## 12. Estrutura do Projeto
+
+Organização sugerida:
+
+* `player.py` → personagem principal
+* `inimigos.py` → lógica dos inimigos
+* `mapa.py` → cenário
+* `jogo.py` → lógica principal
+* `menu.py` → interface
+* `fases.py` → controle de fases
+
+---
+
+## 13. Funcionalidades Mínimas
+
+Primeira versão deve conter:
+
+* Movimento do jogador
+* Sistema de pulo
+* Colisão
+* Inimigos básicos
+* Sistema de vida
+* Final de fase
+* Menu simples
+
+---
+
+## 14. Melhorias Futuras
+
+* Agachar
+* Tiros diagonais
+* Novos tipos de inimigos
+* Sistema de upgrades
+* Mais armas
+* Mais fases
+* Chefes intermediários
+* Melhorias visuais e sonoras
+* Recarga de munição
+* Trocar de arma durante a fase
+
+---
+
+## 🧠 Boss Final
+
+**Nome:** Romero Merito
+
+O chefe final representa o ápice do sistema robótico e será o maior desafio do jogo, exigindo habilidade e estratégia do jogador.
+ 
