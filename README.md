@@ -1,5 +1,10 @@
 # 🎮 SmachTech: Invasion Robotics
+## Desenvolvedores do jogo:
+Renan Rodrigo Medeios Dantas
+Gustavo Medeiros Lucena
+Juan Oliveira Fonseca
 
+---
 ## 1. Título do Jogo
 
 **SmachTech: Invasion Robotics**
@@ -28,10 +33,10 @@ Objetivo final: completar todas as fases e derrotar Romero Merito
 
 ## 4. Personagem Principal
 
-**Nome:** Gebeto
+**Nome:** Gepeto
 
 **Descrição:**
-Gebeto é um humano modificado criado por seu pai, um cientista obcecado pela criação de robôs autônomos. Após anos sendo usado como experimento, ele se rebela e parte em busca de vingança.
+Gebeto é um humano modificado criado por seu pai, um cientista obcecado pela criação de robôs autônomos. Após anos sendo usado como experimento, ele se rebela e parte em busca de vingança contra seu pai que agora, ja se transfomou em um ciborgue.
 
 **Movimentação:**
 
@@ -66,13 +71,13 @@ Gebeto é um humano modificado criado por seu pai, um cientista obcecado pela cr
 
 ## 6. Cenário (Mapa)
 
-Cidade futurista destruída.
+Cidade destruída/caótica.
 
 **Elementos:**
 
 * Prédios em ruínas
 * Fogo
-* Estruturas tecnológicas
+* Estruturas em ruínas
 
 **Mapa:**
 
@@ -159,12 +164,12 @@ Baseado no tempo de conclusão da fase:
 
 Organização sugerida:
 
-* `player.py` → personagem principal
-* `inimigos.py` → lógica dos inimigos
-* `mapa.py` → cenário
-* `jogo.py` → lógica principal
-* `menu.py` → interface
-* `fases.py` → controle de fases
+* `Player.py` → personagem principal
+* `Inimigos.py` → lógica dos inimigos
+* `Mapa.py` → cenário
+* `Jogo.py` → lógica principal
+* `Menu.py` → interface
+* `Fases.py` → controle de fases
 
 ---
 
