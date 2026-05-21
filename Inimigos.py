@@ -1,7 +1,7 @@
 import pygame
 
 
-class inimigos:
+class inimigos: #classe pai
   def __init__(self, x, y, velocidade = 2):
     self.y = y
     self.x = x
@@ -20,9 +20,9 @@ class inimigos:
       pygame.draw.rect(tela,(234,109,0), (int(self.x), int(self.y), 40, 40))
 
     
-class aereo(inimigos):
+class aereo(inimigos): #classe filha
  pass
-class parado(inimigos):
+class parado(inimigos): #classe filha
  pass
-class terrestre(inimigos):
+class terrestre(inimigos): #classe filha
   pass
