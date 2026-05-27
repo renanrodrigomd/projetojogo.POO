@@ -5,6 +5,12 @@ Gustavo Medeiros Lucena
 Juan Oliveira Fonseca
 
 ---
+
+## Cronograma:
+codificacção dos integrantes pelo menos uma vez na semana.
+entrega do objeto que representa o personagem e e os objetos que representam os inimigos se movimentando.
+
+---
 ## 1. Título do Jogo
 
 **SmachTech: Invasion Robotics**
