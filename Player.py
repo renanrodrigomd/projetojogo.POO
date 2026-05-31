@@ -16,7 +16,7 @@ class player:
            self.posx += 2
         elif direction == "space":
            self.posy -= 6
-
+    def atirar(self):
 
 
     def desenhar(self, tela):
