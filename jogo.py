@@ -1,6 +1,42 @@
-from Fases import fases
-from Inimigos import inimigos
-from Mapa import mapa
-
-from Player import player
 import pygame
+from Player import Player
+
+pygame.init()
+
+LARGURA = 1200
+ALTURA = 700
+
+tela = pygame.display.set_mode(
+    (LARGURA, ALTURA)
+)
+
+pygame.display.set_caption(
+    "SmachTech: Invasion Robotics"
+)
+
+jogador = Player()
+
+relogio = pygame.time.Clock()
+
+rodando = True
+
+while rodando:
+
+    relogio.tick(60)
+
+    for evento in pygame.event.get():
+
+        if evento.type == pygame.QUIT:
+            rodando = False
+
+    jogador.mover()
+    jogador.pular()
+    jogador.atualizar()
+
+    tela.fill((20, 20, 20))
+
+    jogador.desenhar(tela)
+
+    pygame.display.update()
+
+pygame.quit()

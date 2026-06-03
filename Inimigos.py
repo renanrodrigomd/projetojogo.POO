@@ -1,51 +1,39 @@
 import pygame
-from Player import player
 
-class inimigos: #classe pai
-  def __init__(self, x, y, velocidade = 2):
-    self.y = y
-    self.x = x
-    self.velocidade = velocidade
+class Inimigo:
 
+    def __init__(self, x, y):
 
-  def perseguir(self,player):
-    if self.x < player.posx:
-      self.x += self.velocidade
+        self.posx = x
+        self.posy = y
 
-    elif self.x > player.posx:
-      self.x -= self.velocidade
+        self.largura = 40
+        self.altura = 40
 
-  def desenhar(self, tela):
-      
-      pygame.draw.circle(tela,(234,109,0), (int(self.x), int(self.y), 40, 40))
+        self.velocidade = 2
 
-    
-class aereo:
-   def __init__(self,x, velocidade):
-     self.x = x
-     self.x = velocidade
-     
-   def voar(self,player):
-      distancia = abs( self.x - player.posx)
+        self.limite_esquerda = x - 100
+        self.limite_direita = x + 100
 
+    def mover(self):
 
-      if distancia <= 8:
-         return
-       
+        self.posx += self.velocidade
 
-      if self.x < player.posx:
-         self.x += self.velocidade
-      elif self.x > player.posx:
-         self.x -= self.velocidade
-         
+        if self.posx >= self.limite_direita:
+            self.velocidade *= -1
 
-     
-class parado: #classe filha
-    def __init__(self):
+        if self.posx <= self.limite_esquerda:
+            self.velocidade *= -1
 
-     def parado(self):
-      
-      self.velocidade == 0
-      
-class terrestre(inimigos): #classe filha
-  pass
+    def desenhar(self, tela):
+
+        pygame.draw.rect(
+            tela,
+            (255, 0, 0),
+            (
+                self.posx,
+                self.posy,
+                self.largura,
+                self.altura
+            )
+        )
