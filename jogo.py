@@ -1,5 +1,6 @@
 import pygame
 from Player import Player
+from Inimigos import Inimigo
 
 pygame.init()
 
@@ -15,6 +16,8 @@ pygame.display.set_caption(
 )
 
 jogador = Player()
+
+adversario = Inimigo(400,550)
 
 relogio = pygame.time.Clock()
 
@@ -32,10 +35,13 @@ while rodando:
     jogador.mover()
     jogador.pular()
     jogador.atualizar()
+    adversario.mover(jogador.posx)
+    adversario.atualizar()
 
     tela.fill((20, 20, 20))
 
     jogador.desenhar(tela)
+    adversario.desenhar(tela)
 
     pygame.display.update()
 
