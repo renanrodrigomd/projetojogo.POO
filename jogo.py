@@ -2,47 +2,39 @@ import pygame
 from Player import Player
 from Inimigos import Inimigo
 
-pygame.init()
+def iniciar_jogo():
 
-LARGURA = 1200
-ALTURA = 700
+    LARGURA = 1200
+    ALTURA = 700
 
-tela = pygame.display.set_mode(
-    (LARGURA, ALTURA)
-)
+    tela = pygame.display.set_mode((LARGURA, ALTURA))
 
-pygame.display.set_caption(
-    "SmachTech: Invasion Robotics"
-)
+    jogador = Player()
+    adversario = Inimigo(400, 550)
 
-jogador = Player()
+    relogio = pygame.time.Clock()
 
-adversario = Inimigo(400,550)
+    rodando = True
 
-relogio = pygame.time.Clock()
+    while rodando:
 
-rodando = True
+        relogio.tick(60)
 
-while rodando:
+        for evento in pygame.event.get():
 
-    relogio.tick(60)
+            if evento.type == pygame.QUIT:
+                rodando = False
 
-    for evento in pygame.event.get():
+        jogador.mover()
+        jogador.pular()
+        jogador.atualizar()
 
-        if evento.type == pygame.QUIT:
-            rodando = False
+        adversario.mover(jogador.posx)
+        adversario.atualizar()
 
-    jogador.mover()
-    jogador.pular()
-    jogador.atualizar()
-    adversario.mover(jogador.posx)
-    adversario.atualizar()
+        tela.fill((20, 20, 20))
 
-    tela.fill((20, 20, 20))
+        jogador.desenhar(tela)
+        adversario.desenhar(tela)
 
-    jogador.desenhar(tela)
-    adversario.desenhar(tela)
-
-    pygame.display.update()
-
-pygame.quit()
+        pygame.display.update()
