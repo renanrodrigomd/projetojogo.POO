@@ -1,13 +1,13 @@
 # 🎮 SmachTech: Invasion Robotics
 ## Desenvolvedores do jogo:
-Renan Rodrigo Medeios Dantas
-Gustavo Medeiros Lucena
+Renan Rodrigo Medeiros Dantas,
+Gustavo Medeiros Lucena,
 Juan Oliveira Fonseca
 
 ---
 
 ## Cronograma:
-codificacção dos integrantes pelo menos uma vez na semana.
+codificação dos integrantes pelo menos uma vez na semana.
 Entrega do objeto que representa o personagem e e os objetos que representam os inimigos se movimentando.
 
 ---
