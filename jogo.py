@@ -38,3 +38,5 @@ def iniciar_jogo():
         adversario.desenhar(tela)
 
         pygame.display.update()
+        
+iniciar_jogo()
