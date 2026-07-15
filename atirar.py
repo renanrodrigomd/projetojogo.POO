@@ -12,7 +12,7 @@ class Tiro:
         self.x += self.velocidade
 
         # Exemplo: desativa quando sai da tela
-        if self.x > 800:
+        if self.x > 1200:
             self.ativo = False
 
     def desenhar(self, tela):
