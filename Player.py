@@ -1,7 +1,7 @@
-from atirar import Tiro
+from tiros import Tiro
 
 import pygame
-
+import math
 class Player:
 
     def __init__(self):
@@ -11,6 +11,11 @@ class Player:
 
         self.largura = 40
         self.altura = 60
+
+        self.direcao_olhar = "d"
+
+        self.ultima_horizontal = "d"
+
         self.tiros = []
         self.velocidade = 5
 
@@ -26,11 +31,35 @@ class Player:
 
         teclas = pygame.key.get_pressed()
 
-        if teclas[pygame.K_a] or teclas[pygame.K_LEFT]:
-            self.posx -= self.velocidade
+        esquerda = teclas[pygame.K_a] or teclas[pygame.K_LEFT]
+        direita = teclas[pygame.K_d] or teclas[pygame.K_RIGHT]
+        cima = teclas[pygame.K_w] or teclas[pygame.K_UP]
 
-        if teclas[pygame.K_d] or teclas[pygame.K_RIGHT]:
+        if esquerda:
+            self.posx -= self.velocidade
+            self.ultima_horizontal = "a"
+
+        if direita:
             self.posx += self.velocidade
+            self.ultima_horizontal = "d"
+
+        if esquerda and cima:
+            self.direcao_olhar = "aw"
+
+        elif direita and cima:
+            self.direcao_olhar = "dw"
+
+        elif cima:
+            self.direcao_olhar = "w"
+
+        elif esquerda:
+            self.direcao_olhar = "a"
+
+        elif direita:
+            self.direcao_olhar = "d"
+
+        else:
+            self.direcao_olhar = self.ultima_horizontal
 
         if self.posx < 0:
             self.posx = 0
@@ -42,7 +71,7 @@ class Player:
 
         teclas = pygame.key.get_pressed()
 
-        if (teclas[pygame.K_SPACE] or teclas[pygame.K_UP]) and self.no_chao:
+        if (teclas[pygame.K_SPACE]) and self.no_chao:
 
             self.velocidade_y = self.forca_pulo
             self.no_chao = False
@@ -77,12 +106,53 @@ class Player:
                 self.altura
             )
         )
+
+        vetores = {
+            "a": (-1, 0),
+            "d": (1, 0),
+            "aw": (-1, -1),
+            "dw": (1, -1),
+            "w": (0, -1)
+        }
+
+        dx, dy = vetores[self.direcao_olhar]
+
+        tamanho = math.sqrt(dx * dx + dy * dy)
+
+        dx /= tamanho
+        dy /= tamanho
+
+        comprimento = 120
+
+        inicio = (
+        self.posx + self.largura // 2,
+        self.posy + self.altura // 2
+        )
+
+        fim = (
+            inicio[0] + dx * comprimento,
+            inicio[1] + dy * comprimento
+        )
+
+        pygame.draw.line(tela, (255, 0, 0), inicio, fim, 3)
         for tiro in self.tiros:
             tiro.desenhar(tela)
     
     def atirar(self):
-        tiro = Tiro(
-            self.posx + self.largura,
-            self.posy + self.altura // 2
-        )
+
+        vetores = {
+            "a": (-1, 0),
+            "d": (1, 0),
+            "aw": (-1, -1),
+            "dw": (1, -1),
+            "w": (0, -1)
+        }
+
+        dx, dy = vetores[self.direcao_olhar]
+
+        x = self.posx + self.largura // 2
+        y = self.posy + self.altura // 2
+
+        tiro = Tiro(x, y, dx, dy)
+
         self.tiros.append(tiro)

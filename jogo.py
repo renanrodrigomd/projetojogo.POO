@@ -36,6 +36,13 @@ def iniciar_jogo():
         adversario.mover(jogador.posx)
         adversario.atualizar()
 
+        for tiro in jogador.tiros[:]:
+
+            if tiro.get_rect().colliderect(adversario.get_rect()):
+
+                tiro.ativo = False
+                adversario.vivo = False
+
         tela.fill((20, 20, 20))
 
         jogador.desenhar(tela)

@@ -4,6 +4,8 @@ class Inimigo:
 
     def __init__(self, x, y):
 
+        self.vivo = True
+
         self.posx = 1000
         self.posy = 550
 
@@ -18,6 +20,8 @@ class Inimigo:
         self.vida = 2
 
     def mover(self, player_x):
+        if not self.vivo:
+            return
         distancia = player_x - self.posx
         if abs(distancia) > 300:
             if distancia > 0:
@@ -33,10 +37,23 @@ class Inimigo:
     
      
     def atualizar(self):
+        if not self.vivo:
+            return
         self.limite_esquerda = self.posx - 4
         self.limite_direita = self.posx + 1
 
+    def get_rect(self):
+        return pygame.Rect(
+            self.posx,
+            self.posy,
+            self.largura,
+            self.altura
+        )
+
     def desenhar(self, tela):
+
+        if not self.vivo:
+            return
 
         pygame.draw.rect(
             tela,
