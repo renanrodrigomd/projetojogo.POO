@@ -43,4 +43,3 @@ def iniciar_jogo():
 
         pygame.display.update()
         
-iniciar_jogo()
