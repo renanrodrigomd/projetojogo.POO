@@ -4,8 +4,8 @@ from Inimigos import Inimigo
 
 def iniciar_jogo():
 
-    ALTURA = 800
-    LARGURA = 1500
+    ALTURA = 700
+    LARGURA = 1230
 
     tela = pygame.display.set_mode((LARGURA, ALTURA))
 
