@@ -1,3 +1,5 @@
+from atirar import Tiro
+
 import pygame
 
 class Player:
@@ -9,7 +11,7 @@ class Player:
 
         self.largura = 40
         self.altura = 60
-
+        self.tiros = []
         self.velocidade = 5
 
         self.velocidade_y = 0
@@ -57,6 +59,12 @@ class Player:
             self.velocidade_y = 0
             self.no_chao = True
 
+        for tiro in self.tiros[:]:
+            tiro.atualizar()
+
+            if not tiro.ativo:
+                self.tiros.remove(tiro)
+ 
     def desenhar(self, tela):
 
         pygame.draw.rect(
@@ -69,3 +77,12 @@ class Player:
                 self.altura
             )
         )
+        for tiro in self.tiros:
+            tiro.desenhar(tela)
+    
+    def atirar(self):
+        tiro = Tiro(
+            self.posx + self.largura,
+            self.posy + self.altura // 2
+        )
+        self.tiros.append(tiro)

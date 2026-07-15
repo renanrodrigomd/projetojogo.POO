@@ -25,6 +25,10 @@ def iniciar_jogo():
             if evento.type == pygame.QUIT:
                 rodando = False
 
+            if evento.type == pygame.KEYDOWN:
+                if evento.key == pygame.K_r:
+                    jogador.atirar()
+
         jogador.mover()
         jogador.pular()
         jogador.atualizar()
