@@ -1,5 +1,5 @@
 import pygame
-
+#cria o inimigo pai
 class Inimigo:
 
     def __init__(self, x, y):
@@ -18,7 +18,7 @@ class Inimigo:
         self.limite_direita = x + 100
 
         self.vida = 2
-
+#segue o player e para se chegar < 300 de distancia
     def mover(self, player_x):
         if not self.vivo:
             return
@@ -34,14 +34,13 @@ class Inimigo:
                 self.posx -= self.velocidade
             else:
                 self.posx += self.velocidade
-    
-     
+#se o inimigo estiver vivo passa tais posições, se não ele desaparece
     def atualizar(self):
         if not self.vivo:
             return
         self.limite_esquerda = self.posx - 4
         self.limite_direita = self.posx + 1
-
+#detecção de colisão
     def get_rect(self):
         return pygame.Rect(
             self.posx,
@@ -49,7 +48,7 @@ class Inimigo:
             self.largura,
             self.altura
         )
-
+#desenha o inimigo
     def desenhar(self, tela):
 
         if not self.vivo:

@@ -1,5 +1,5 @@
 import pygame
-
+#cria o objeto mapa
 class mapa:
     def __init__(self):
         pygame.init()

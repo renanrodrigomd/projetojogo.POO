@@ -1,6 +1,6 @@
 import pygame
 import math
-
+#cria o objeto tiro
 class Tiro:
 
     def __init__(self, x, y, dx, dy):
@@ -15,7 +15,7 @@ class Tiro:
 
         self.velocidade = 12
         self.ativo = True
-
+#define velocidade e posição
     def atualizar(self):
 
         self.posx += self.dx * self.velocidade
@@ -28,7 +28,7 @@ class Tiro:
             self.posy > 720
         ):
             self.ativo = False
-
+#verifica colisão
     def get_rect(self):
         return pygame.Rect(
             self.posx - 5,
@@ -36,7 +36,7 @@ class Tiro:
             10,
             10
         )
-
+#desenha o tiro
     def desenhar(self, tela):
 
         pygame.draw.circle(

@@ -2,6 +2,7 @@ from tiros import Tiro
 
 import pygame
 import math
+#cria o objeto player
 class Player:
 
     def __init__(self):
@@ -26,7 +27,7 @@ class Player:
         self.no_chao = True
 
         self.vida = 3
-
+#movimenta o player
     def mover(self):
 
         teclas = pygame.key.get_pressed()
@@ -66,7 +67,7 @@ class Player:
 
         if self.posx > 1200 - self.largura:
             self.posx = 1200 - self.largura
-
+#o player pula
     def pular(self):
 
         teclas = pygame.key.get_pressed()
@@ -75,7 +76,7 @@ class Player:
 
             self.velocidade_y = self.forca_pulo
             self.no_chao = False
-
+#define velocidade e posição
     def atualizar(self):
 
         self.velocidade_y += self.gravidade
@@ -93,7 +94,7 @@ class Player:
 
             if not tiro.ativo:
                 self.tiros.remove(tiro)
- 
+ #desenha o player e o raio de visão dele
     def desenhar(self, tela):
 
         pygame.draw.rect(
@@ -137,7 +138,7 @@ class Player:
         pygame.draw.line(tela, (255, 0, 0), inicio, fim, 3)
         for tiro in self.tiros:
             tiro.desenhar(tela)
-    
+    #o player atira para onde estiver olhando
     def atirar(self):
 
         vetores = {
