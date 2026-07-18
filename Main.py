@@ -6,7 +6,7 @@ pygame.init()
 #tamanho da tela
 LARGURA = 1200
 ALTURA = 700
-#desenha a tela com o título
+#cria a janela junto com o título
 tela = pygame.display.set_mode((LARGURA, ALTURA))
 pygame.display.set_caption("SmachTech: Invasion Robotics")
 #fonte da letra
