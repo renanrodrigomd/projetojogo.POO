@@ -1,5 +1,5 @@
 import pygame
-#cria o inimigo pai
+#cria a classe inimigo que pode ser abstrata
 class Inimigo:
 
     def __init__(self, x, y):
@@ -17,7 +17,7 @@ class Inimigo:
         self.limite_esquerda = x - 100
         self.limite_direita = x + 100
 
-        self.vida = 2
+        self.vida = 5
 #segue o player e para se chegar < 300 de distancia
     def mover(self, player_x):
         if not self.vivo:

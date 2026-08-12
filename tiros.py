@@ -1,6 +1,6 @@
 import pygame
 import math
-#cria o objeto tiro
+#cria o objeto tiro, classe abstrata
 class Tiro:
 
     def __init__(self, x, y, dx, dy):
