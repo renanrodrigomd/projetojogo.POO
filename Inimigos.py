@@ -1,56 +1,76 @@
 import pygame
-#cria a classe inimigo que pode ser abstrata
-class Inimigo:
+import math
+
+from Personagem import Personagem
+
+
+class Inimigo(Personagem):
 
     def __init__(self, x, y):
+        super().__init__(x, y)
 
         self.vivo = True
+        self.vida = 2
+        self.velocidade = 3
 
-        self.posx = 1000
-        self.posy = 550
+        # O inimigo começa a atacar quando o Player
+        # estiver a até 300 pixels.
+        self.alcance_ataque = 500
 
-        self.largura = 40
-        self.altura = 60
+        # 1000 ms = 1 segundo.
+        self.cooldown_tiro = 2000
 
-        self.velocidade = 4
-
-        self.limite_esquerda = x - 100
-        self.limite_direita = x + 100
-
-        self.vida = 5
-#segue o player e para se chegar < 300 de distancia
     def mover(self, player_x):
         if not self.vivo:
             return
+
         distancia = player_x - self.posx
-        if abs(distancia) > 300:
+
+        if abs(distancia) > self.alcance_ataque:
+
             if distancia > 0:
                 self.posx += self.velocidade
+
             else:
                 self.posx -= self.velocidade
-        
-        elif abs(distancia) < 300:
-            if distancia < 300:
-                self.posx -= self.velocidade
+
+    def olhar_player(self, player_x, player_y):
+        distancia_x = player_x - self.posx
+        distancia_y = player_y - self.posy
+
+        if distancia_x > 0:
+
+            if distancia_y < -20:
+                self.direcao_olhar = "dw"
+
             else:
-                self.posx += self.velocidade
-#se o inimigo estiver vivo passa tais posições, se não ele desaparece
+                self.direcao_olhar = "d"
+
+        else:
+
+            if distancia_y < -20:
+                self.direcao_olhar = "aw"
+
+            else:
+                self.direcao_olhar = "a"
+
+        if abs(distancia_x) < 30 and distancia_y < 0:
+            self.direcao_olhar = "w"
+
+    def pode_atacar(self, player_x):
+        distancia = abs(
+            player_x - self.posx
+        )
+
+        return distancia <= self.alcance_ataque
+
     def atualizar(self):
         if not self.vivo:
             return
-        self.limite_esquerda = self.posx - 4
-        self.limite_direita = self.posx + 1
-#detecção de colisão
-    def get_rect(self):
-        return pygame.Rect(
-            self.posx,
-            self.posy,
-            self.largura,
-            self.altura
-        )
-#desenha o inimigo
-    def desenhar(self, tela):
 
+        self.atualizar_tiros()
+
+    def desenhar(self, tela):
         if not self.vivo:
             return
 
@@ -64,3 +84,43 @@ class Inimigo:
                 self.altura
             )
         )
+
+        vetores = {
+            "a": (-1, 0),
+            "d": (1, 0),
+            "aw": (-1, -1),
+            "dw": (1, -1),
+            "w": (0, -1)
+        }
+
+        dx, dy = vetores[self.direcao_olhar]
+
+        tamanho = math.sqrt(
+            dx * dx + dy * dy
+        )
+
+        dx /= tamanho
+        dy /= tamanho
+
+        comprimento = 120
+
+        inicio = (
+            self.posx + self.largura // 2,
+            self.posy + self.altura // 2
+        )
+
+        fim = (
+            inicio[0] + dx * comprimento,
+            inicio[1] + dy * comprimento
+        )
+
+        pygame.draw.line(
+            tela,
+            (0, 255, 0),
+            inicio,
+            fim,
+            3
+        )
+
+        for tiro in self.tiros:
+            tiro.desenhar(tela)

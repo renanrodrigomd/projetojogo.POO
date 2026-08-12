@@ -1,32 +1,40 @@
 import pygame
+
 from Player import Player
 from Inimigos import Inimigo
-#roda o jogo
+
+
 def iniciar_jogo():
-#tamanho da tela
+
     ALTURA = 700
-    LARGURA = 1230
-#desenha a tela
-    tela = pygame.display.set_mode((LARGURA, ALTURA))
-#chama o jogador e o adversário
+    LARGURA = 1200
+
+    tela = pygame.display.set_mode(
+        (LARGURA, ALTURA)
+    )
+
     jogador = Player()
-    adversario = Inimigo(400, 550)
-#chama o relógio
+
+    adversario = Inimigo(
+        900,
+        550
+    )
+
     relogio = pygame.time.Clock()
-#tudo funcionando
+
     rodando = True
-#se estiver rodando, execute:
+
     while rodando:
-#controla a velocidade do jogo
+
         relogio.tick(60)
-#verifique todos os eventos e processe um por um
+
         for evento in pygame.event.get():
-#fecha o jogo
+
             if evento.type == pygame.QUIT:
                 rodando = False
-#se mexer no teclado, faça os botões funcionarem
+
             if evento.type == pygame.KEYDOWN:
-#atira no "r"
+
                 if evento.key == pygame.K_k:
                     jogador.atirar()
 
@@ -34,23 +42,57 @@ def iniciar_jogo():
         jogador.pular()
         jogador.atualizar()
 
-        adversario.mover(jogador.posx)
+        adversario.mover(
+            jogador.posx
+        )
+
+        adversario.olhar_player(
+            jogador.posx,
+            jogador.posy
+        )
+
         adversario.atualizar()
-#se os tiros saírem da tela, eles somem
+
+        if adversario.vivo:
+
+            if adversario.pode_atacar(
+                jogador.posx
+            ):
+                adversario.atirar()
+
+        # Verifica se algum tiro do Player atingiu o inimigo.
         for tiro in jogador.tiros[:]:
 
-            if adversario.vivo and tiro.get_rect().colliderect(adversario.get_rect()):
+            if (
+                adversario.vivo
+                and tiro.get_rect().colliderect(
+                    adversario.get_rect()
+                )
+            ):
 
                 tiro.ativo = False
+
                 adversario.vida -= 1
 
-                if adversario.vida<= 0:
+                if adversario.vida <= 0:
                     adversario.vivo = False
-#preenche a cor da tela
-        tela.fill((20, 20, 20))
-#desenha o player e os inimigos na tela
+
+        # Verifica se algum tiro do inimigo atingiu o Player.
+        for tiro in adversario.tiros[:]:
+
+            if tiro.get_rect().colliderect(
+                jogador.get_rect()
+            ):
+
+                tiro.ativo = False
+
+                jogador.vida -= 1
+
+        tela.fill(
+            (20, 20, 20)
+        )
+
         jogador.desenhar(tela)
         adversario.desenhar(tela)
-#mostra na tela tudo o que foi desenhado
+
         pygame.display.update()
-        
