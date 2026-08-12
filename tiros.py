@@ -8,8 +8,6 @@ class Tiro:
         self.posx = x
         self.posy = y
 
-        # Normaliza a direção para manter a mesma velocidade
-        # quando o tiro é diagonal.
         tamanho = math.sqrt(
             dx * dx + dy * dy
         )
@@ -25,7 +23,6 @@ class Tiro:
         self.posx += self.dx * self.velocidade
         self.posy += self.dy * self.velocidade
 
-        # Desativa o tiro quando ele sai da área da tela.
         if (
             self.posx < -20
             or self.posx > 1250
@@ -53,4 +50,36 @@ class Tiro:
                 int(self.posy)
             ),
             5
+        )
+
+
+class Missil(Tiro):
+
+    def __init__(self, x, y, dx, dy):
+        super().__init__(x, y, dx, dy)
+
+        # O RPG é maior e mais lento que um tiro comum.
+        self.velocidade = 7
+        self.tamanho = 12
+        self.explodiu = False
+
+    def get_rect(self):
+
+        return pygame.Rect(
+            self.posx - self.tamanho,
+            self.posy - self.tamanho,
+            self.tamanho * 2,
+            self.tamanho * 2
+        )
+
+    def desenhar(self, tela):
+
+        pygame.draw.circle(
+            tela,
+            (40, 150, 40),
+            (
+                int(self.posx),
+                int(self.posy)
+            ),
+            self.tamanho
         )

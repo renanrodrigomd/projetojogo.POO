@@ -1,0 +1,3 @@
+        InimigoAereo(800, 250),
+        InimigoBlindado(1000, 550),
+        InimigoExplosivo(500, 550)
