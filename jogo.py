@@ -27,7 +27,7 @@ def iniciar_jogo():
 #se mexer no teclado, faça os botões funcionarem
             if evento.type == pygame.KEYDOWN:
 #atira no "r"
-                if evento.key == pygame.K_r:
+                if evento.key == pygame.K_k:
                     jogador.atirar()
 
         jogador.mover()
@@ -39,10 +39,13 @@ def iniciar_jogo():
 #se os tiros saírem da tela, eles somem
         for tiro in jogador.tiros[:]:
 
-            if tiro.get_rect().colliderect(adversario.get_rect()):
+            if adversario.vivo and tiro.get_rect().colliderect(adversario.get_rect()):
 
                 tiro.ativo = False
-                adversario.vivo = False
+                adversario.vida -= 1
+
+                if adversario.vida<= 0:
+                    adversario.vivo = False
 #preenche a cor da tela
         tela.fill((20, 20, 20))
 #desenha o player e os inimigos na tela

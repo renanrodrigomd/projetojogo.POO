@@ -7,6 +7,9 @@ class Player:
 
     def __init__(self):
 
+        self.cooldown_tiro = 300
+        self.ultimo_tiro = 0
+
         self.posx = 100
         self.posy = 550
 
@@ -140,6 +143,13 @@ class Player:
             tiro.desenhar(tela)
     #o player atira para onde estiver olhando
     def atirar(self):
+
+        agora = pygame.time.get_ticks()
+
+        if agora - self.ultimo_tiro < self.cooldown_tiro:
+            return
+
+        self.ultimo_tiro = agora
 
         vetores = {
             "a": (-1, 0),
