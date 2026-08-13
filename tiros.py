@@ -15,7 +15,7 @@ class Tiro:
         self.dx = dx / tamanho
         self.dy = dy / tamanho
 
-        self.velocidade = 12
+        self.velocidade = 8
         self.ativo = True
 
     def atualizar(self):
