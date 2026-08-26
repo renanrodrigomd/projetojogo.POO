@@ -25,7 +25,7 @@ class Tiro:
 
         if (
             self.posx < -20
-            or self.posx > 1250
+            or self.posx > 10000
             or self.posy < -20
             or self.posy > 720
         ):
@@ -40,14 +40,14 @@ class Tiro:
             10
         )
 
-    def desenhar(self, tela):
+    def desenhar(self, tela, camera_x = 0, camera_y = 0):
 
         pygame.draw.circle(
             tela,
             (255, 255, 0),
             (
-                int(self.posx),
-                int(self.posy)
+                int(self.posx - camera_x),
+                int(self.posy - camera_y)
             ),
             5
         )

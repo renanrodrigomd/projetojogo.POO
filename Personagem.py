@@ -16,7 +16,7 @@ class Personagem:
         self.tiros = []
 
         # O cooldown é definido em milissegundos.
-        self.cooldown_tiro = 300
+        self.cooldown_tiro = 500
         self.ultimo_tiro = 0
 
     def atirar(self):

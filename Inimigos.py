@@ -160,6 +160,7 @@ class InimigoAereo(Inimigo):
 
         self.vida = 2
         self.velocidade = 2
+        
 
         # Distância horizontal que ele tenta manter do Player.
         self.distancia_minima = 250

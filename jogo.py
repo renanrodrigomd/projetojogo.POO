@@ -1,5 +1,5 @@
 import pygame
-
+from Mapa import mapa
 from Player import Player
 from Inimigos import (
     InimigoTerrestre,

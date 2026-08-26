@@ -21,8 +21,10 @@ class Player(Personagem):
 
         self.vida = 3
 
-        # O Player pode atirar a cada 0,3 segundo.
-        self.cooldown_tiro = 300
+        # O Player pode atirar a cada 0,5 segundo.
+        self.cooldown_tiro = 500
+
+        self.largura_mapa = 10000
 
     def mover(self):
         teclas = pygame.key.get_pressed()
@@ -71,8 +73,8 @@ class Player(Personagem):
         if self.posx < 0:
             self.posx = 0
 
-        if self.posx > 1200 - self.largura:
-            self.posx = 1200 - self.largura
+        if self.posx > self.largura_mapa - self.largura:
+            self.posx = self.largura_mapa - self.largura
 
     def pular(self):
         teclas = pygame.key.get_pressed()
@@ -92,7 +94,7 @@ class Player(Personagem):
 
         self.atualizar_tiros()
 
-    def desenhar(self, tela):
+    def desenhar(self, tela, camera_x = 0, camera_y = 0):
         pygame.draw.rect(
             tela,
             (255, 167, 0),
@@ -142,4 +144,4 @@ class Player(Personagem):
         )
 
         for tiro in self.tiros:
-            tiro.desenhar(tela)
+            tiro.desenhar(tela, camera_x, camera_y)
