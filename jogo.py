@@ -1,4 +1,5 @@
 import pygame
+from camera import camera
 from Mapa import mapa
 from Player import Player
 from Inimigos import (
@@ -16,6 +17,16 @@ def iniciar_jogo():
 
     tela = pygame.display.set_mode(
         (LARGURA, ALTURA)
+    )
+
+    LARGURA_MAPA = 3000
+    ALTURA_MAPA = 1200
+
+    cam = camera(
+        LARGURA_MAPA,
+        ALTURA_MAPA,
+        LARGURA_TELA,
+        ALTURA_TELA
     )
 
     jogador = Player()
@@ -45,6 +56,7 @@ def iniciar_jogo():
         jogador.mover()
         jogador.pular()
         jogador.atualizar()
+        cam.atualizar_camera(jogador)
 
         for inimigo in inimigos:
 
