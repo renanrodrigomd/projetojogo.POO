@@ -121,7 +121,7 @@ def iniciar_jogo():
                     tiro.ativo = False
                     jogador.vida -= 1
 
-        BG = pygame.image.load('assets/background/Bgteste.jpg')
+        BG = pygame.image.load('assets/background/cidadeferrada.png')
         tela.blit(BG, (0, 0))
 
         jogador.desenhar(tela, cam.x , cam.y)
