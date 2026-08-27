@@ -95,16 +95,22 @@ class Player(Personagem):
         self.atualizar_tiros()
 
     def desenhar(self, tela, camera_x = 0, camera_y = 0):
+        tela_x = self.posx - camera_x
+        tela_y = self.posy - camera_y
+
         pygame.draw.rect(
             tela,
             (255, 167, 0),
             (
-                self.posx,
-                self.posy,
+                tela_x,
+                tela_y,
                 self.largura,
                 self.altura
             )
         )
+
+        self.posx = tela_x
+        self.posy = tela_y
 
         vetores = {
             "a": (-1, 0),
@@ -126,8 +132,8 @@ class Player(Personagem):
         comprimento = 120
 
         inicio = (
-            self.posx + self.largura // 2,
-            self.posy + self.altura // 2
+            tela_x + self.largura // 2,
+            tela_y + self.altura // 2
         )
 
         fim = (

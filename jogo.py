@@ -1,5 +1,5 @@
 import pygame
-from camera import camera
+from camera import Camera
 from Mapa import mapa
 from Player import Player
 from Inimigos import (
@@ -19,14 +19,14 @@ def iniciar_jogo():
         (LARGURA, ALTURA)
     )
 
-    LARGURA_MAPA = 3000
-    ALTURA_MAPA = 1200
+    LARGURA_MAPA = 10000
+    ALTURA_MAPA = 777
 
-    cam = camera(
+    cam = Camera(
         LARGURA_MAPA,
         ALTURA_MAPA,
-        LARGURA_TELA,
-        ALTURA_TELA
+        ALTURA,
+        LARGURA
     )
 
     jogador = Player()
@@ -121,11 +121,10 @@ def iniciar_jogo():
                     tiro.ativo = False
                     jogador.vida -= 1
 
-        tela.fill(
-            (20, 20, 20)
-        )
+        BG = pygame.image.load('assets/background/Bgteste.jpg')
+        tela.blit(BG, (0, 0))
 
-        jogador.desenhar(tela)
+        jogador.desenhar(tela, cam.x , cam.y)
 
         for inimigo in inimigos:
             inimigo.desenhar(tela)

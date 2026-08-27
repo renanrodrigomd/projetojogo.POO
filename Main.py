@@ -61,7 +61,9 @@ while rodando:
             if botao_sair.collidepoint(evento.pos):
                 rodando = False
 
-    tela.fill((0, 0, 0))
+    BG = pygame.image.load('assets/background/Bgteste.jpg')
+    BG = pygame.transform.scale(BG, (100, 100))
+    tela.blit(BG, (0, 0))
 
     pygame.draw.rect(
         tela,
