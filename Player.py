@@ -109,9 +109,6 @@ class Player(Personagem):
             )
         )
 
-        self.posx = tela_x
-        self.posy = tela_y
-
         vetores = {
             "a": (-1, 0),
             "d": (1, 0),

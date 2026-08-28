@@ -20,26 +20,22 @@ fonte = pygame.font.SysFont(
     50
 )
 
-botao_jogar = pygame.Rect(
-    450,
-    220,
-    300,
-    70
-)
+# Desenho das imagens no lugar dos botões e desenha a imagem de fundo do menu
 
-botao_ranking = pygame.Rect(
-    450,
-    330,
-    300,
-    70
-)
+BG = pygame.image.load('assets/telasjogo/TelaFundo.png')
+BG = pygame.transform.scale(BG, (1200, 700))
 
-botao_sair = pygame.Rect(
-    450,
-    440,
-    300,
-    70
-)
+botao_jogar = pygame.image.load('assets/telasjogo/jogar.png').convert_alpha()
+
+botao_ranking = pygame.image.load('assets/telasjogo/credito.png').convert_alpha()
+
+botao_sair = pygame.image.load('assets/telasjogo/sair.png').convert_alpha()
+
+botao_jogar_rect = botao_jogar.get_rect(topleft=(450, 220))
+
+botao_ranking_rect = botao_ranking.get_rect(topleft=(450, 330))
+
+botao_sair_rect = botao_sair.get_rect(topleft=(450, 440))
 
 rodando = True
 iniciar_jogo = False
@@ -54,62 +50,32 @@ while rodando:
 
         if evento.type == pygame.MOUSEBUTTONDOWN:
 
-            if botao_jogar.collidepoint(evento.pos):
+            if botao_jogar_rect.collidepoint(evento.pos):
                 iniciar_jogo = True
                 rodando = False
 
-            if botao_sair.collidepoint(evento.pos):
+            if botao_sair_rect.collidepoint(evento.pos):
                 rodando = False
 
-    BG = pygame.image.load('assets/background/Bgteste.jpg')
-    BG = pygame.transform.scale(BG, (100, 100))
     tela.blit(BG, (0, 0))
-
-    pygame.draw.rect(
-        tela,
-        (80, 80, 80),
-        botao_jogar
+    
+    tela.blit(
+        botao_jogar,
+        botao_jogar_rect
     )
 
-    pygame.draw.rect(
-        tela,
-        (80, 80, 80),
-        botao_ranking
+    tela.blit(
+        botao_ranking,
+        botao_ranking_rect
     )
 
-    pygame.draw.rect(
-        tela,
-        (80, 80, 80),
-        botao_sair
+    tela.blit(
+        botao_sair,
+        botao_sair_rect
     )
 
     # Renderiza os textos dos botões.
-    tela.blit(
-        fonte.render(
-            "Jogar",
-            True,
-            (255, 255, 255)
-        ),
-        (550, 240)
-    )
-
-    tela.blit(
-        fonte.render(
-            "Ranking",
-            True,
-            (255, 255, 255)
-        ),
-        (510, 350)
-    )
-
-    tela.blit(
-        fonte.render(
-            "Sair",
-            True,
-            (255, 255, 255)
-        ),
-        (560, 460)
-    )
+   
 
     pygame.display.update()
 

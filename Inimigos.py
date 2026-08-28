@@ -199,15 +199,121 @@ class InimigoAereo(Inimigo):
 class InimigoBlindado(Inimigo):
 
     def __init__(self, x, y):
+
         super().__init__(x, y)
+
+        self.frame_atual = 0
+        self.tempo_ultimo_frame = pygame.time.get_ticks()
+        self.velocidade_animacao = 100
+
+        # Começa parado
+        self.andando = False
 
         self.vida = 8
         self.velocidade = 1.5
-
         self.alcance_ataque = 600
 
         # O blindado dispara mais devagar.
         self.cooldown_tiro = 3000
+
+        # Carrega a spritesheet do tank boladissimo
+        spritesheet = pygame.image.load(
+            "assets/enemys/tank.png"
+        ).convert_alpha()
+
+        # Quantidade de colunas e linhas
+        COLUNAS = 2
+        LINHAS = 6
+
+        # Calcula o tamanho de cada espaço
+        largura_frame = spritesheet.get_width() // COLUNAS
+        altura_frame = spritesheet.get_height() // LINHAS
+
+        # Lista dos frames
+        self.frames = []
+
+        # Queremos apenas 11 sprites
+        for i in range(11):
+
+            # Descobre coluna e linha
+            coluna = i % COLUNAS
+            linha = i // COLUNAS
+
+            # Posição do frame
+            x = coluna * largura_frame
+            y = linha * altura_frame
+
+            # Recorta o frame
+            frame = spritesheet.subsurface(
+                pygame.Rect(
+                    x,
+                    y,
+                    largura_frame,
+                    altura_frame
+                )
+            ).copy()
+
+            # Redimensiona
+            frame = pygame.transform.scale(
+                frame,
+                (120, 100)
+            )
+
+            self.frames.append(frame)
+
+    def mover(self, player_x, player_y):
+
+        if not self.vivo:
+            return
+
+        # Começa considerando que está parado
+        self.andando = False
+
+        distancia = player_x - self.posx
+
+        # Só anda se estiver longe do jogador
+        if abs(distancia) > self.alcance_ataque:
+
+            if distancia > 0:
+                self.posx += self.velocidade
+                self.andando = True
+
+            elif distancia < 0:
+                self.posx -= self.velocidade
+                self.andando = True
+
+    def atualizar_animacao(self):
+
+        # Se não está andando, fica no primeiro frame
+        if not self.andando:
+
+            self.frame_atual = 0
+
+            return
+
+        agora = pygame.time.get_ticks()
+
+        if agora - self.tempo_ultimo_frame >= self.velocidade_animacao:
+
+            self.frame_atual += 1
+
+            # Volta para o primeiro frame
+            if self.frame_atual >= len(self.frames):
+
+                self.frame_atual = 0
+
+            self.tempo_ultimo_frame = agora
+
+    def atualizar(self):
+
+        if not self.vivo:
+            return
+
+        # Só troca os frames se estiver andando
+        self.atualizar_animacao()
+
+        # Continua atualizando os tiros
+        self.atualizar_tiros()
 
     def atirar(self):
         agora = pygame.time.get_ticks()
@@ -236,10 +342,37 @@ class InimigoBlindado(Inimigo):
 
         self.tiros.append(missil)
 
+    def desenhar(self, tela):
+
+        if not self.vivo:
+            return
+
+        # Verifica se existem frames
+        if len(self.frames) == 0:
+            print("ERRO: nenhum frame foi carregado!")
+            return
+
+        # Garante que o número do frame é válido
+        if self.frame_atual >= len(self.frames):
+            self.frame_atual = 0
+
+        tela.blit(
+            self.frames[self.frame_atual],
+            (
+                self.posx,
+                self.posy
+            )
+        )
+
+        # Desenha os mísseis
+        for tiro in self.tiros:
+            tiro.desenhar(tela)
+
 
 class InimigoExplosivo(Inimigo):
 
     def __init__(self, x, y):
+        
         super().__init__(x, y)
 
         self.vida = 2

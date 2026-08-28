@@ -1,5 +1,8 @@
 import pygame
 from Mapa import mapa
+# Criando a câmera para acompanhar o Player durante o mapa
+
+
 
 class Camera:
     def __init__(self, largura_mapa, altura_mapa, largura_tela, altura_tela):

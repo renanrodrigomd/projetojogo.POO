@@ -19,6 +19,15 @@ def iniciar_jogo():
         (LARGURA, ALTURA)
     )
 
+    background = pygame.image.load(
+        "assets/background/cidadeferrada.png"
+    ).convert()
+
+    background = pygame.transform.scale(
+        background,
+        (LARGURA, ALTURA)
+    )
+
     LARGURA_MAPA = 10000
     ALTURA_MAPA = 777
 
@@ -32,7 +41,8 @@ def iniciar_jogo():
     jogador = Player()
 
     inimigos = [
-        InimigoTerrestre(700, 550)
+        InimigoTerrestre(700, 550),
+        InimigoBlindado(700,550)
     ]
 
     relogio = pygame.time.Clock()
@@ -121,8 +131,7 @@ def iniciar_jogo():
                     tiro.ativo = False
                     jogador.vida -= 1
 
-        BG = pygame.image.load('assets/background/cidadeferrada.png')
-        tela.blit(BG, (0, 0))
+        tela.blit(background, (0, 0))
 
         jogador.desenhar(tela, cam.x , cam.y)
 
