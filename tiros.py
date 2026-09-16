@@ -8,9 +8,7 @@ class Tiro:
         self.posx = x
         self.posy = y
 
-        tamanho = math.sqrt(
-            dx * dx + dy * dy
-        )
+        tamanho = math.sqrt(dx * dx + dy * dy)
 
         self.dx = dx / tamanho
         self.dy = dy / tamanho
@@ -19,7 +17,6 @@ class Tiro:
         self.ativo = True
 
     def atualizar(self):
-
         self.posx += self.dx * self.velocidade
         self.posy += self.dy * self.velocidade
 
@@ -32,7 +29,6 @@ class Tiro:
             self.ativo = False
 
     def get_rect(self):
-
         return pygame.Rect(
             self.posx - 5,
             self.posy - 5,
@@ -40,8 +36,7 @@ class Tiro:
             10
         )
 
-    def desenhar(self, tela, camera_x = 0, camera_y = 0):
-
+    def desenhar(self, tela, camera_x=0, camera_y=0):
         pygame.draw.circle(
             tela,
             (255, 255, 0),
@@ -58,13 +53,11 @@ class Missil(Tiro):
     def __init__(self, x, y, dx, dy):
         super().__init__(x, y, dx, dy)
 
-        # O RPG é maior e mais lento que um tiro comum.
         self.velocidade = 7
         self.tamanho = 12
         self.explodiu = False
 
     def get_rect(self):
-
         return pygame.Rect(
             self.posx - self.tamanho,
             self.posy - self.tamanho,
@@ -72,14 +65,13 @@ class Missil(Tiro):
             self.tamanho * 2
         )
 
-    def desenhar(self, tela):
-
+    def desenhar(self, tela, camera_x=0, camera_y=0):
         pygame.draw.circle(
             tela,
             (40, 150, 40),
             (
-                int(self.posx),
-                int(self.posy)
+                int(self.posx - camera_x),
+                int(self.posy - camera_y)
             ),
             self.tamanho
         )

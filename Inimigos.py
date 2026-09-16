@@ -1,14 +1,18 @@
 import pygame
 import math
 
+from caminhos import asset
 from Personagem import Personagem
 from tiros import Tiro, Missil
 
 
 class Inimigo(Personagem):
 
-    def __init__(self, x, y):
+    def __init__(self, x, y, chao_y=610, largura_mapa=10000):
         super().__init__(x, y)
+
+        self.chao_y = chao_y
+        self.largura_mapa = largura_mapa
 
         self.vivo = True
         self.vida = 2
@@ -88,7 +92,7 @@ class Inimigo(Personagem):
 
         self.atualizar_tiros()
 
-    def desenhar(self, tela):
+    def desenhar(self, tela, camera_x=0, camera_y=0):
         if not self.vivo:
             return
 
@@ -96,8 +100,8 @@ class Inimigo(Personagem):
             tela,
             (255, 0, 0),
             (
-                self.posx,
-                self.posy,
+                self.posx - camera_x,
+                self.posy - camera_y,
                 self.largura,
                 self.altura
             )
@@ -113,8 +117,8 @@ class Inimigo(Personagem):
         comprimento = 120
 
         inicio = (
-            self.posx + self.largura // 2,
-            self.posy + self.altura // 2
+            self.posx - camera_x + self.largura // 2,
+            self.posy - camera_y + self.altura // 2
         )
 
         fim = (
@@ -131,13 +135,26 @@ class Inimigo(Personagem):
         )
 
         for tiro in self.tiros:
-            tiro.desenhar(tela)
+            tiro.desenhar(tela, camera_x, camera_y)
 
 
 class InimigoTerrestre(Inimigo):
 
-    def __init__(self, x, y):
-        super().__init__(x, y)
+    def __init__(self, x, y, chao_y=610, largura_mapa=10000):
+        super().__init__(x, y, chao_y, largura_mapa)
+
+        # Sprite do robô terrestre.
+        self.sprite = pygame.image.load(
+            asset("enemys", "robo.png")
+        ).convert_alpha()
+        self.sprite = pygame.transform.smoothscale(
+            self.sprite,
+            (56, 70)
+        )
+
+        self.largura = 56
+        self.altura = 70
+        self.posy = self.chao_y - self.altura
 
     def mover(self, player_x, player_y):
         if not self.vivo:
@@ -152,11 +169,32 @@ class InimigoTerrestre(Inimigo):
             else:
                 self.posx -= self.velocidade
 
+        self.posx = max(0, min(self.posx, self.largura_mapa - self.largura))
+        self.posy = self.chao_y - self.altura
+
+    def desenhar(self, tela, camera_x=0, camera_y=0):
+        if not self.vivo:
+            return
+
+        tela.blit(
+            self.sprite,
+            (self.posx - camera_x, self.posy - camera_y)
+        )
+
+        for tiro in self.tiros:
+            tiro.desenhar(tela, camera_x, camera_y)
+
 
 class InimigoAereo(Inimigo):
 
-    def __init__(self, x, y):
-        super().__init__(x, y)
+    def __init__(self, x, y, chao_y=610, largura_mapa=10000):
+        super().__init__(x, y, chao_y, largura_mapa)
+
+        self.sprite = pygame.image.load(
+            asset("enemys", "dronelegal.png")
+        ).convert_alpha()
+        self.largura = 70
+        self.altura = 70
 
         self.vida = 2
         self.velocidade = 2
@@ -195,12 +233,24 @@ class InimigoAereo(Inimigo):
             else:
                 self.posy -= self.velocidade
 
+    def desenhar(self, tela, camera_x=0, camera_y=0):
+        if not self.vivo:
+            return
+
+        tela.blit(
+            self.sprite,
+            (self.posx - camera_x, self.posy - camera_y)
+        )
+
+        for tiro in self.tiros:
+            tiro.desenhar(tela, camera_x, camera_y)
+
 
 class InimigoBlindado(Inimigo):
 
-    def __init__(self, x, y):
+    def __init__(self, x, y, chao_y=610, largura_mapa=10000):
 
-        super().__init__(x, y)
+        super().__init__(x, y, chao_y, largura_mapa)
 
         self.frame_atual = 0
         self.tempo_ultimo_frame = pygame.time.get_ticks()
@@ -218,7 +268,7 @@ class InimigoBlindado(Inimigo):
 
         # Carrega a spritesheet do tank boladissimo
         spritesheet = pygame.image.load(
-            "assets/enemys/tank.png"
+            asset("enemys", "tank.png")
         ).convert_alpha()
 
         # Quantidade de colunas e linhas
@@ -282,6 +332,9 @@ class InimigoBlindado(Inimigo):
                 self.posx -= self.velocidade
                 self.andando = True
 
+        self.posx = max(0, min(self.posx, self.largura_mapa - self.largura))
+        self.posy = self.chao_y - self.altura
+
     def atualizar_animacao(self):
 
         # Se não está andando, fica no primeiro frame
@@ -342,7 +395,7 @@ class InimigoBlindado(Inimigo):
 
         self.tiros.append(missil)
 
-    def desenhar(self, tela):
+    def desenhar(self, tela, camera_x=0, camera_y=0):
 
         if not self.vivo:
             return
@@ -356,17 +409,21 @@ class InimigoBlindado(Inimigo):
         if self.frame_atual >= len(self.frames):
             self.frame_atual = 0
 
+        # O sprite do tanque possui uma pequena margem visual na parte inferior.
+       
+        sprite_offset_y = -10
+
         tela.blit(
             self.frames[self.frame_atual],
             (
-                self.posx,
-                self.posy
+                self.posx - camera_x,
+                self.posy - camera_y + sprite_offset_y
             )
         )
 
         # Desenha os mísseis
         for tiro in self.tiros:
-            tiro.desenhar(tela)
+            tiro.desenhar(tela, camera_x, camera_y)
 
 
 class InimigoExplosivo(Inimigo):
@@ -404,6 +461,9 @@ class InimigoExplosivo(Inimigo):
         elif distancia_x < 0:
             self.posx -= velocidade
 
+        self.posx = max(0, min(self.posx, self.largura_mapa - self.largura))
+        self.posy = self.chao_y - self.altura
+
     def atirar(self):
         # O explosivo não possui ataque à distância.
         return
@@ -421,7 +481,7 @@ class InimigoExplosivo(Inimigo):
             self.vivo = False
             self.explodiu = True
 
-    def desenhar(self, tela):
+    def desenhar(self, tela, camera_x=0, camera_y=0):
         if not self.vivo:
             return
 
@@ -431,8 +491,8 @@ class InimigoExplosivo(Inimigo):
             tela,
             cor,
             (
-                self.posx,
-                self.posy,
+                self.posx - camera_x,
+                self.posy - camera_y,
                 self.largura,
                 self.altura
             )

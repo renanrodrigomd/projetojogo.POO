@@ -1,7 +1,4 @@
 import pygame
-from Mapa import mapa
-# Criando a câmera para acompanhar o Player durante o mapa
-
 
 
 class Camera:
@@ -11,7 +8,6 @@ class Camera:
 
         self.largura_mapa = largura_mapa
         self.altura_mapa = altura_mapa
-
         self.largura_tela = largura_tela
         self.altura_tela = altura_tela
 
@@ -21,9 +17,15 @@ class Camera:
         self.x = jogador_rect.centerx - self.largura_tela // 2
         self.y = jogador_rect.centery - self.altura_tela // 2
 
-
-        self.x = max(0, min(self.x, self.largura_mapa - self.largura_tela))
-        self.y = max(0, min(self.y, self.altura_mapa - self.altura_tela))
+        # Impede a câmera de mostrar áreas fora do mapa.
+        self.x = max(
+            0,
+            min(self.x, max(0, self.largura_mapa - self.largura_tela))
+        )
+        self.y = max(
+            0,
+            min(self.y, max(0, self.altura_mapa - self.altura_tela))
+        )
 
     def aplicar(self, rect):
         return rect.move(-self.x, -self.y)

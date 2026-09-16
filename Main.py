@@ -1,6 +1,8 @@
 import pygame
 import jogo
 
+from caminhos import asset
+
 
 pygame.init()
 
@@ -22,14 +24,26 @@ fonte = pygame.font.SysFont(
 
 # Desenho das imagens no lugar dos botões e desenha a imagem de fundo do menu
 
-BG = pygame.image.load('assets/telasjogo/TelaFundo.png')
-BG = pygame.transform.scale(BG, (1200, 700))
+BG = pygame.image.load(
+    asset("telasjogo", "TelaFundo.png")
+)
 
-botao_jogar = pygame.image.load('assets/telasjogo/jogar.png').convert_alpha()
+BG = pygame.transform.scale(
+    BG,
+    (1200, 700)
+)
 
-botao_ranking = pygame.image.load('assets/telasjogo/credito.png').convert_alpha()
+botao_jogar = pygame.image.load(
+    asset("telasjogo", "jogar.png")
+).convert_alpha()
 
-botao_sair = pygame.image.load('assets/telasjogo/sair.png').convert_alpha()
+botao_ranking = pygame.image.load(
+    asset("telasjogo", "credito.png")
+).convert_alpha()
+
+botao_sair = pygame.image.load(
+    asset("telasjogo", "sair.png")
+).convert_alpha()
 
 botao_jogar_rect = botao_jogar.get_rect(topleft=(450, 220))
 
