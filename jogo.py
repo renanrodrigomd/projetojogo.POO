@@ -114,7 +114,7 @@ def iniciar_jogo():
 
     #cria a sprite de fundo do mapa corretamente
     background_original = pygame.image.load(
-        asset("background", "cidadeferrada.png")
+        asset("background", "backgroundjogo.png")
     ).convert()
 
     #coincidencia da escala com o chao_y

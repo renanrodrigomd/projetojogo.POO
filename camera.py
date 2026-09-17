@@ -17,7 +17,7 @@ class Camera:
         self.x = jogador_rect.centerx - self.largura_tela // 2
         self.y = jogador_rect.centery - self.altura_tela // 2
 
-        # Impede a câmera de mostrar áreas fora do mapa.
+        # Impede a câmera de sair do mapa.
         self.x = max(
             0,
             min(self.x, max(0, self.largura_mapa - self.largura_tela))
