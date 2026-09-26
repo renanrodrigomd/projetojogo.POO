@@ -1,6 +1,7 @@
 import pygame
 import math
 
+from caminhos import asset
 
 class Tiro:
 
@@ -57,6 +58,16 @@ class Missil(Tiro):
         self.tamanho = 12
         self.explodiu = False
 
+        self.sprite = pygame.image.load(asset("enemys", "Tiro.Tank.png")).convert_alpha()
+
+        area =  self.sprite.get_bounding_rect()
+
+        if area.width > 0 and area.height > 0:
+            self.sprite =self.sprite.subsurface(area).copy()
+
+        #Tamanho do Projetil no mapa
+        self.sprite = pygame.transform.smoothscale(self.sprite, (60,30))
+
     def get_rect(self):
         return pygame.Rect(
             self.posx - self.tamanho,
@@ -66,12 +77,17 @@ class Missil(Tiro):
         )
 
     def desenhar(self, tela, camera_x=0, camera_y=0):
-        pygame.draw.circle(
-            tela,
-            (40, 150, 40),
-            (
+
+        angulo = math.degrees(math.atan2(self.dy, self.dx))
+
+        sprite = pygame.transform.rotate(self.sprite, -angulo)
+        
+        rect = sprite.get_rect(
+            center=(
                 int(self.posx - camera_x),
                 int(self.posy - camera_y)
-            ),
-            self.tamanho
+            )
         )
+
+        tela.blit(sprite, rect)
+        
