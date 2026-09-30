@@ -193,6 +193,8 @@ class InimigoAereo(Inimigo):
         self.sprite = pygame.image.load(
             asset("enemys", "dronelegal.png")
         ).convert_alpha()
+
+        
         self.largura = 70
         self.altura = 70
 
