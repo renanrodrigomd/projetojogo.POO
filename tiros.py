@@ -9,6 +9,9 @@ class Tiro:
         self.posx = x
         self.posy = y
 
+        self.tempo_vida = 0
+        self.duracao_efeito = 120
+
         tamanho = math.sqrt(dx * dx + dy * dy)
 
         self.dx = dx / tamanho
@@ -17,7 +20,16 @@ class Tiro:
         self.velocidade = 8
         self.ativo = True
 
+        self.rastro = []
+
     def atualizar(self):
+        self.rastro.append((self.posx, self.posy))
+
+        self.tempo_vida += 16
+
+        if len(self.rastro) > 5:
+            self.rastro.pop(0)
+
         self.posx += self.dx * self.velocidade
         self.posy += self.dy * self.velocidade
 
@@ -38,14 +50,69 @@ class Tiro:
         )
 
     def desenhar(self, tela, camera_x=0, camera_y=0):
+
+        x = int(self.posx - camera_x)
+        y = int(self.posy - camera_y)
+
+        progresso = min(
+            self.tempo_vida / self.duracao_efeito,
+            1
+        )
+
+        # Começa grande e diminui rapidamente
+        tamanho = int(9 - progresso * 6)
+
+        if tamanho < 2:
+            tamanho = 2
+
+        # Pequeno rastro atrás do tiro
+        rastro = int(8 - progresso * 7)
+
+        if rastro > 1:
+            inicio_x = int(
+                x - self.dx * rastro
+            )
+
+            inicio_y = int(
+                y - self.dy * rastro
+            )
+
+            pygame.draw.line(
+                tela,
+                (190, 190, 190),
+                (inicio_x, inicio_y),
+                (x, y),
+                max(1, tamanho // 2)
+            )
+
+        # Impacto inicial
+        if progresso < 0.25:
+
+            impacto = int(
+                12 * (1 - progresso / 0.25)
+            )
+
+            pygame.draw.circle(
+                tela,
+                (255, 190, 80),
+                (x, y),
+                impacto
+            )
+
+        # Corpo principal
         pygame.draw.circle(
             tela,
-            (255, 255, 0),
-            (
-                int(self.posx - camera_x),
-                int(self.posy - camera_y)
-            ),
-            5
+            (255, 220, 120),
+            (x, y),
+            tamanho
+        )
+
+        # Núcleo
+        pygame.draw.circle(
+            tela,
+            (255, 255, 255),
+            (x, y),
+            max(1, tamanho // 2)
         )
 
 

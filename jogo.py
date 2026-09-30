@@ -99,6 +99,33 @@ def desenhar_hud(tela, jogador, inimigos, pontuacao, fase):
         (30, 62)
     )
 
+def tela_derrota(tela):
+    imagem = pygame.image.load(
+        asset("telasjogo", "Teladederrota.png")
+    ).convert()
+
+    imagem = pygame.transform.scale(
+        imagem,
+        tela.get_size()
+    )
+
+    tela.blit(imagem, (0, 0))
+    pygame.display.update()
+
+    esperando = True
+
+    while esperando:
+        for evento in pygame.event.get():
+
+            if evento.type == pygame.QUIT:
+                esperando = False
+
+            if evento.type == pygame.KEYDOWN:
+                if evento.key == pygame.K_ESCAPE:
+                    esperando = False
+
+        pygame.time.Clock().tick(60)
+
 def iniciar_jogo():
 
     LARGURA = 1200
@@ -189,6 +216,11 @@ def iniciar_jogo():
             if inimigo.pode_atacar(jogador.posx, jogador.posy):
                 inimigo.atirar()
 
+        if jogador.vida <= 0:
+            tela_derrota(tela)
+            rodando = False
+            continue
+
         # Tiros do Player contra inimigos.
         for tiro in jogador.tiros[:]:
             for inimigo in inimigos:
@@ -220,7 +252,7 @@ def iniciar_jogo():
 
                 if tiro.get_rect().colliderect(jogador.get_rect()):
                     tiro.ativo = False
-                    jogador.vida -= 1
+                    jogador.receber_dano()
 
         # repetição de sprite
         inicio_x = -(cam.x % background.get_width()) - background.get_width()
