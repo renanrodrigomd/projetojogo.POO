@@ -179,6 +179,7 @@ def iniciar_jogo():
 
     relogio = pygame.time.Clock()
     rodando = True
+    impactos = []
 
     while rodando:
         relogio.tick(60)
@@ -229,7 +230,12 @@ def iniciar_jogo():
                     continue
 
                 if tiro.get_rect().colliderect(inimigo.get_rect()):
-                    tiro.ativo = False
+                    posicao_impacto = tiro.criar_impacto()
+                    impactos.append([
+                        posicao_impacto[0],
+                        posicao_impacto[1],
+                        pygame.time.get_ticks()
+                    ])
 
                     if isinstance(inimigo, InimigoExplosivo):
                         inimigo.receber_dano()
@@ -278,6 +284,27 @@ def iniciar_jogo():
 
         for inimigo in inimigos:
             inimigo.desenhar(tela, cam.x, cam.y)
+
+        agora = pygame.time.get_ticks()
+
+        for impacto in impactos[:]:
+            x, y, tempo = impacto
+            decorrido = agora - tempo
+
+            if decorrido >= 250:
+                impactos.remove(impacto)
+                continue
+
+            progresso = decorrido / 250
+            raio = int(4 + progresso * 18)
+
+            pygame.draw.circle(
+                tela,
+                (255, 190, 70),
+                (int(x - cam.x), int(y - cam.y)),
+                raio,
+                2
+            )
 
         desenhar_hud(
             tela,

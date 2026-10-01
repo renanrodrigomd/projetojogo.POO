@@ -49,6 +49,10 @@ class Tiro:
             10
         )
 
+    def criar_impacto(self):
+        self.ativo = False
+        return (self.posx, self.posy)
+
     def desenhar(self, tela, camera_x=0, camera_y=0):
 
         x = int(self.posx - camera_x)

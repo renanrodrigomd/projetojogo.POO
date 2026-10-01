@@ -1,3 +1,5 @@
+from cmath import rect
+
 import pygame
 
 from caminhos import asset
@@ -225,8 +227,8 @@ class Player(Personagem):
             frame = frames[self.frame_atual]
 
         rect = frame.get_rect(
-            bottomleft=(
-                int(self.posx - camera_x),
+            midbottom=(
+                int(self.posx + self.largura / 2 - camera_x),
                 int(self.posy + self.altura - camera_y)
             )
         )
