@@ -10,156 +10,507 @@ from Inimigos import (
     InimigoExplosivo
 )
 
-def desenhar_hud(tela, jogador, inimigos, pontuacao, fase):
-    fonte = pygame.font.Font(None, 32)
-    fonte_pequena = pygame.font.Font(None, 26)
 
-    inimigos_restantes = sum(
-        1 for inimigo in inimigos
+LARGURA = 1200
+ALTURA = 700
+LARGURA_MAPA = 10000
+CHAO_Y = 610
+FINAL_FASE = 9500
+
+
+def texto(tela, mensagem, tamanho, cor, posicao, centralizado=False):
+
+    fonte = pygame.font.SysFont(
+        "arial",
+        tamanho,
+        bold=True
+    )
+
+    imagem = fonte.render(
+        mensagem,
+        True,
+        cor
+    )
+
+    if centralizado:
+
+        rect = imagem.get_rect(
+            center=posicao
+        )
+
+        tela.blit(
+            imagem,
+            rect
+        )
+
+    else:
+
+        tela.blit(
+            imagem,
+            posicao
+        )
+
+
+def desenhar_barra(
+    tela,
+    x,
+    y,
+    largura,
+    altura,
+    valor,
+    maximo,
+    cor
+):
+
+    pygame.draw.rect(
+        tela,
+        (20, 22, 28),
+        (x, y, largura, altura),
+        border_radius=5
+    )
+
+    preenchimento = max(
+        0,
+        min(
+            1,
+            valor / maximo
+        )
+    )
+
+    pygame.draw.rect(
+        tela,
+        cor,
+        (
+            x,
+            y,
+            int(largura * preenchimento),
+            altura
+        ),
+        border_radius=5
+    )
+
+    pygame.draw.rect(
+        tela,
+        (210, 215, 225),
+        (x, y, largura, altura),
+        2,
+        border_radius=5
+    )
+
+
+def desenhar_hud(
+    tela,
+    jogador,
+    inimigos,
+    pontuacao,
+    fase,
+    tempo
+):
+
+    vivos = sum(
+        1
+        for inimigo in inimigos
         if inimigo.vivo
     )
 
-    # Fundo da HUD
+    # Painel superior
+
     pygame.draw.rect(
         tela,
-        (20, 20, 20),
-        (15, 15, 1170, 75)
+        (12, 16, 24),
+        (18, 15, 1164, 82),
+        border_radius=14
     )
 
-    # Borda da HUD
     pygame.draw.rect(
         tela,
-        (100, 100, 100),
-        (15, 15, 1170, 75),
-        2
+        (50, 58, 75),
+        (18, 15, 1164, 82),
+        2,
+        border_radius=14
     )
 
-    # Vida
-    texto_vida = fonte.render(
-        f"VIDA: {jogador.vida}",
-        True,
-        (255, 255, 255)
+    # Jogador
+
+    texto(
+        tela,
+        "GEPETO",
+        21,
+        (220, 225, 235),
+        (35, 25)
     )
 
-    tela.blit(
-        texto_vida,
-        (30, 28)
+    desenhar_barra(
+        tela,
+        35,
+        53,
+        180,
+        16,
+        jogador.vida,
+        3,
+        (220, 70, 75)
+    )
+
+    texto(
+        tela,
+        f"{jogador.vida}/3",
+        16,
+        (245, 245, 245),
+        (103, 52)
     )
 
     # Fase
-    texto_fase = fonte.render(
-        f"FASE: {fase}",
-        True,
-        (255, 255, 255)
-    )
 
-    tela.blit(
-        texto_fase,
-        (220, 28)
+    texto(
+        tela,
+        f"FASE {fase}",
+        20,
+        (105, 205, 255),
+        (250, 27)
     )
 
     # Pontuação
-    texto_pontuacao = fonte.render(
-        f"PONTOS: {pontuacao}",
-        True,
-        (255, 255, 255)
+
+    texto(
+        tela,
+        f"PONTOS  {pontuacao:04d}",
+        20,
+        (255, 215, 95),
+        (400, 27)
     )
 
-    tela.blit(
-        texto_pontuacao,
-        (400, 28)
+    # Inimigos
+
+    texto(
+        tela,
+        f"ROBÔS  {vivos}",
+        20,
+        (220, 225, 235),
+        (625, 27)
     )
 
-    # Inimigos restantes
-    texto_inimigos = fonte.render(
-        f"INIMIGOS: {inimigos_restantes}",
-        True,
-        (255, 255, 255)
-    )
+    # Tempo
 
-    tela.blit(
-        texto_inimigos,
-        (650, 28)
+    minutos = int(tempo) // 60
+    segundos = int(tempo) % 60
+
+    texto(
+        tela,
+        f"{minutos:02d}:{segundos:02d}",
+        20,
+        (220, 225, 235),
+        (850, 27)
     )
 
     # Objetivo
-    if inimigos_restantes > 0:
-        objetivo = "OBJETIVO: Elimine todos os inimigos"
+
+    if vivos:
+
+        objetivo = "ELIMINE OS ROBÔS E AVANCE ATÉ A SAÍDA"
+
     else:
-        objetivo = "OBJETIVO: Área limpa!"
 
-    texto_objetivo = fonte_pequena.render(
+        objetivo = "ÁREA LIMPA! A SAÍDA ESTÁ LIBERADA"
+
+    texto(
+        tela,
         objetivo,
-        True,
-        (220, 220, 220)
+        16,
+        (165, 175, 190),
+        (250, 57)
     )
 
-    tela.blit(
-        texto_objetivo,
-        (30, 62)
+
+def desenhar_saida(tela, camera_x):
+
+    x = FINAL_FASE - camera_x
+
+    if -100 < x < LARGURA + 100:
+
+        # Estrutura da saída
+
+        pygame.draw.rect(
+            tela,
+            (15, 25, 35),
+            (
+                x,
+                CHAO_Y - 155,
+                95,
+                155
+            ),
+            border_radius=12
+        )
+
+        pygame.draw.rect(
+            tela,
+            (80, 210, 255),
+            (
+                x + 8,
+                CHAO_Y - 147,
+                79,
+                147
+            ),
+            4,
+            border_radius=10
+        )
+
+        # Linhas internas
+
+        for i in range(4):
+
+            yy = CHAO_Y - 125 + i * 30
+
+            pygame.draw.line(
+                tela,
+                (80, 210, 255),
+                (x + 20, yy),
+                (x + 75, yy),
+                3
+            )
+
+        texto(
+            tela,
+            "SAÍDA",
+            18,
+            (150, 230, 255),
+            (x + 47, CHAO_Y - 180),
+            centralizado=True
+        )
+
+
+def desenhar_cenario(
+    tela,
+    background,
+    chao,
+    camera_x,
+    camera_y
+):
+
+    # Fundo repetido
+
+    inicio_x = (
+        -(camera_x % background.get_width())
+        - background.get_width()
     )
+
+    for x in range(
+        inicio_x,
+        LARGURA + background.get_width(),
+        background.get_width()
+    ):
+
+        tela.blit(
+            background,
+            (x, -camera_y)
+        )
+
+    # Chão
+
+    inicio_chao = (
+        -(camera_x % chao.get_width())
+        - chao.get_width()
+    )
+
+    for x in range(
+        inicio_chao,
+        LARGURA + chao.get_width(),
+        chao.get_width()
+    ):
+
+        tela.blit(
+            chao,
+            (x, CHAO_Y - 20 - camera_y)
+        )
+
+    # Parte inferior
+
+    pygame.draw.rect(
+        tela,
+        (22, 25, 31),
+        (
+            0,
+            CHAO_Y + 150 - camera_y,
+            LARGURA,
+            ALTURA
+        )
+    )
+
+    # Linha do chão
+
+    pygame.draw.line(
+        tela,
+        (75, 85, 95),
+        (0, CHAO_Y - camera_y),
+        (LARGURA, CHAO_Y - camera_y),
+        3
+    )
+
 
 def tela_derrota(tela):
+
     imagem = pygame.image.load(
-        asset("telasjogo", "Teladederrota.png")
+        asset(
+            "telasjogo",
+            "Teladederrota.png"
+        )
     ).convert()
 
-    imagem = pygame.transform.scale(
+    imagem = pygame.transform.smoothscale(
         imagem,
         tela.get_size()
     )
 
-    tela.blit(imagem, (0, 0))
-    pygame.display.update()
+    tela.blit(
+        imagem,
+        (0, 0)
+    )
+
+    texto(
+        tela,
+        "ESC  •  voltar ao menu",
+        20,
+        (235, 235, 235),
+        (LARGURA // 2, ALTURA - 35),
+        True
+    )
+
+    pygame.display.flip()
 
     esperando = True
+    relogio = pygame.time.Clock()
 
     while esperando:
+
         for evento in pygame.event.get():
 
             if evento.type == pygame.QUIT:
+                return False
+
+            if (
+                evento.type == pygame.KEYDOWN
+                and evento.key == pygame.K_ESCAPE
+            ):
                 esperando = False
 
-            if evento.type == pygame.KEYDOWN:
-                if evento.key == pygame.K_ESCAPE:
-                    esperando = False
+        relogio.tick(60)
 
-        pygame.time.Clock().tick(60)
+    return True
+
+
+def tela_vitoria(tela, pontuacao, tempo):
+
+    imagem = pygame.image.load(
+        asset(
+            "telasjogo",
+            "Vitoria.png"
+        )
+    ).convert()
+
+    imagem = pygame.transform.smoothscale(
+        imagem,
+        tela.get_size()
+    )
+
+    tela.blit(
+        imagem,
+        (0, 0)
+    )
+
+    texto(
+        tela,
+        f"PONTUAÇÃO  {pontuacao:04d}   •   TEMPO  {int(tempo)}s",
+        24,
+        (245, 245, 245),
+        (LARGURA // 2, ALTURA - 75),
+        True
+    )
+
+    texto(
+        tela,
+        "ESC  •  voltar ao menu",
+        18,
+        (210, 215, 225),
+        (LARGURA // 2, ALTURA - 35),
+        True
+    )
+
+    pygame.display.flip()
+
+    esperando = True
+    relogio = pygame.time.Clock()
+
+    while esperando:
+
+        for evento in pygame.event.get():
+
+            if evento.type == pygame.QUIT:
+                return False
+
+            if (
+                evento.type == pygame.KEYDOWN
+                and evento.key == pygame.K_ESCAPE
+            ):
+                esperando = False
+
+        relogio.tick(60)
+
+    return True
+
 
 def iniciar_jogo():
 
-    LARGURA = 1200
-    ALTURA = 700
+    tela = pygame.display.set_mode(
+        (LARGURA, ALTURA)
+    )
 
-    LARGURA_MAPA = 10000
-    ALTURA_MAPA = 700
+    pygame.display.set_caption(
+        "SmachTech: Invasion Robotics"
+    )
 
-    # Altura da superfície do chão.
-    CHAO_Y = 610
+    # Fundo
 
-    tela = pygame.display.set_mode((LARGURA, ALTURA))
-
-    #cria a sprite de fundo do mapa corretamente
     background_original = pygame.image.load(
-        asset("background", "backgroundjogo.png")
+        asset(
+            "background",
+            "Backgroundjogo.png"
+        )
     ).convert()
-
-    #coincidencia da escala com o chao_y
-    escala = CHAO_Y / (background_original.get_height() * 0.725)
-    largura_fundo = max(1, int(background_original.get_width() * escala))
-    altura_fundo = max(1, int(background_original.get_height() * escala))
 
     background = pygame.transform.smoothscale(
         background_original,
-        (largura_fundo, altura_fundo)
+        (
+            int(background_original.get_width() * 0.95),
+            int(background_original.get_height() * 0.95)
+        )
     )
+
+    # Chão
+
+    chao_original = pygame.image.load(
+        asset(
+            "background",
+            "chaojogo.png"
+        )
+    ).convert_alpha()
+
+    chao = pygame.transform.smoothscale(
+        chao_original,
+        (
+            int(chao_original.get_width() * 0.50),
+            int(chao_original.get_height() * 0.50)
+        )
+    )
+
+    # Câmera
 
     cam = Camera(
         LARGURA_MAPA,
-        ALTURA_MAPA,
+        ALTURA,
         LARGURA,
         ALTURA
     )
+
+    # Jogador
 
     jogador = Player(
         x=100,
@@ -168,150 +519,374 @@ def iniciar_jogo():
         largura_mapa=LARGURA_MAPA
     )
 
+    # Inimigos
+
     inimigos = [
-        InimigoTerrestre(700, CHAO_Y - 70, chao_y=CHAO_Y, largura_mapa=LARGURA_MAPA),
-        InimigoBlindado(900, CHAO_Y - 100, chao_y=CHAO_Y, largura_mapa=LARGURA_MAPA),
-        InimigoAereo(1100, CHAO_Y - 200, chao_y=CHAO_Y, largura_mapa=LARGURA_MAPA),
+
+        InimigoTerrestre(
+            900,
+            CHAO_Y - 70,
+            CHAO_Y,
+            LARGURA_MAPA
+        ),
+
+        InimigoTerrestre(
+            1700,
+            CHAO_Y - 70,
+            CHAO_Y,
+            LARGURA_MAPA
+        ),
+
+        InimigoExplosivo(
+            2500,
+            CHAO_Y - 60
+        ),
+
+        InimigoAereo(
+            3300,
+            CHAO_Y - 220,
+            CHAO_Y,
+            LARGURA_MAPA
+        ),
+
+        InimigoBlindado(
+            4500,
+            CHAO_Y - 100,
+            CHAO_Y,
+            LARGURA_MAPA
+        ),
+
+        InimigoTerrestre(
+            5700,
+            CHAO_Y - 70,
+            CHAO_Y,
+            LARGURA_MAPA
+        ),
+
+        InimigoExplosivo(
+            6900,
+            CHAO_Y - 60
+        ),
+
+        InimigoAereo(
+            7700,
+            CHAO_Y - 240,
+            CHAO_Y,
+            LARGURA_MAPA
+        ),
+
+        InimigoBlindado(
+            8500,
+            CHAO_Y - 100,
+            CHAO_Y,
+            LARGURA_MAPA
+        )
     ]
+
+    # Variáveis
 
     pontuacao = 0
     fase = 1
 
     relogio = pygame.time.Clock()
-    rodando = True
+
+    inicio_fase = pygame.time.get_ticks()
+
     impactos = []
 
+    rodando = True
+
+    # Loop principal
+
     while rodando:
+
         relogio.tick(60)
+
+        tempo = (
+            pygame.time.get_ticks()
+            - inicio_fase
+        ) / 1000
+
+        # Eventos
 
         for evento in pygame.event.get():
 
             if evento.type == pygame.QUIT:
-                rodando = False
+                return False
 
             if evento.type == pygame.KEYDOWN:
+
                 if evento.key == pygame.K_k:
                     jogador.atirar()
 
-                # Pulo por pressionamento, em vez de repetir
-                # enquanto a tecla estiver sendo segurada.
-                if evento.key in (pygame.K_SPACE, pygame.K_w, pygame.K_UP):
+                if evento.key in (
+                    pygame.K_SPACE,
+                    pygame.K_w,
+                    pygame.K_UP
+                ):
+
                     if jogador.no_chao:
-                        jogador.velocidade_y = jogador.forca_pulo
+
+                        jogador.velocidade_y = (
+                            jogador.forca_pulo
+                        )
+
                         jogador.no_chao = False
+
+                if evento.key == pygame.K_ESCAPE:
+                    return True
+
+        # Atualiza jogador
 
         jogador.mover()
         jogador.atualizar()
 
         cam.atualizar_camera(jogador)
 
+        # Atualiza inimigos
+
         for inimigo in inimigos:
 
             if not inimigo.vivo:
                 continue
 
-            inimigo.mover(jogador.posx, jogador.posy)
-            inimigo.olhar_player(jogador.posx, jogador.posy)
+            inimigo.mover(
+                jogador.posx,
+                jogador.posy
+            )
+
+            inimigo.olhar_player(
+                jogador.posx,
+                jogador.posy
+            )
+
             inimigo.atualizar()
 
-            if inimigo.pode_atacar(jogador.posx, jogador.posy):
+            if inimigo.pode_atacar(
+                jogador.posx,
+                jogador.posy
+            ):
+
                 inimigo.atirar()
 
-        if jogador.vida <= 0:
-            tela_derrota(tela)
-            rodando = False
-            continue
+            # Colisão física com o jogador
 
-        # Tiros do Player contra inimigos.
+            if inimigo.get_rect().colliderect(
+                jogador.get_rect()
+            ):
+
+                vida_antes = jogador.vida
+
+                jogador.receber_dano()
+
+                if jogador.vida < vida_antes:
+
+                    if inimigo.posx > jogador.posx:
+                        jogador.posx -= 55
+                    else:
+                        jogador.posx += 55
+
+        # Tiros do jogador
+
         for tiro in jogador.tiros[:]:
+
             for inimigo in inimigos:
 
                 if not inimigo.vivo:
                     continue
 
-                if tiro.get_rect().colliderect(inimigo.get_rect()):
-                    posicao_impacto = tiro.criar_impacto()
+                if tiro.get_rect().colliderect(
+                    inimigo.get_rect()
+                ):
+
+                    impacto = tiro.criar_impacto()
+
                     impactos.append([
-                        posicao_impacto[0],
-                        posicao_impacto[1],
+                        impacto[0],
+                        impacto[1],
                         pygame.time.get_ticks()
                     ])
 
-                    if isinstance(inimigo, InimigoExplosivo):
+                    if isinstance(
+                        inimigo,
+                        InimigoExplosivo
+                    ):
+
                         inimigo.receber_dano()
 
-                        if not inimigo.vivo:
-                            pontuacao += 100
-
                     else:
+
                         inimigo.vida -= 1
 
                         if inimigo.vida <= 0:
                             inimigo.vivo = False
-                            pontuacao += 100
+
+                    if not inimigo.vivo:
+                        pontuacao += 100
 
                     break
 
-        # Tiros dos inimigos contra o Player.
+        # Tiros dos inimigos
+
         for inimigo in inimigos:
+
             for tiro in inimigo.tiros[:]:
 
-                if tiro.get_rect().colliderect(jogador.get_rect()):
+                if tiro.get_rect().colliderect(
+                    jogador.get_rect()
+                ):
+
                     tiro.ativo = False
+
                     jogador.receber_dano()
 
-        # repetição de sprite
-        inicio_x = -(cam.x % background.get_width()) - background.get_width()
+        # Derrota
 
-        for x in range(inicio_x, LARGURA + background.get_width(), background.get_width()):
-            tela.blit(background, (x, -cam.y))
+        if jogador.vida <= 0:
 
-        # O chão é uma área jogável contínua, independentemente do fundo.
-        pygame.draw.rect(
-            tela,
-            (45, 45, 45),
-            (0, CHAO_Y - cam.y, LARGURA, ALTURA - CHAO_Y + cam.y)
+            if not tela_derrota(tela):
+                return False
+
+            return True
+
+        # Contagem de inimigos
+
+        vivos = sum(
+            1
+            for inimigo in inimigos
+            if inimigo.vivo
         )
 
-        # Linha superior do chão.
-        pygame.draw.rect(
+        # Vitória
+
+        if (
+            jogador.posx >= FINAL_FASE
+            and vivos == 0
+        ):
+
+            if not tela_vitoria(
+                tela,
+                pontuacao,
+                tempo
+            ):
+                return False
+
+            return True
+
+        # Desenho
+
+        desenhar_cenario(
             tela,
-            (25, 25, 25),
-            (0, CHAO_Y - cam.y, LARGURA, 8)
+            background,
+            chao,
+            cam.x,
+            cam.y
         )
 
-        jogador.desenhar(tela, cam.x, cam.y)
+        desenhar_saida(
+            tela,
+            cam.x
+        )
+
+        # Inimigos
 
         for inimigo in inimigos:
-            inimigo.desenhar(tela, cam.x, cam.y)
+
+            inimigo.desenhar(
+                tela,
+                cam.x,
+                cam.y
+            )
+
+            if inimigo.vivo:
+
+                if isinstance(
+                    inimigo,
+                    InimigoBlindado
+                ):
+                    max_vida = 8
+                else:
+                    max_vida = 2
+
+                barra_x = int(
+                    inimigo.posx - cam.x
+                )
+
+                barra_y = int(
+                    inimigo.posy
+                    - cam.y
+                    - 12
+                )
+
+                desenhar_barra(
+                    tela,
+                    barra_x,
+                    barra_y,
+                    int(inimigo.largura),
+                    6,
+                    inimigo.vida,
+                    max_vida,
+                    (80, 220, 110)
+                )
+
+        # Jogador
+
+        jogador.desenhar(
+            tela,
+            cam.x,
+            cam.y
+        )
+
+        # Efeitos de impacto
 
         agora = pygame.time.get_ticks()
 
         for impacto in impactos[:]:
-            x, y, tempo = impacto
-            decorrido = agora - tempo
+
+            x, y, tempo_impacto = impacto
+
+            decorrido = (
+                agora - tempo_impacto
+            )
 
             if decorrido >= 250:
-                impactos.remove(impacto)
+
+                impactos.remove(
+                    impacto
+                )
+
                 continue
 
-            progresso = decorrido / 250
-            raio = int(4 + progresso * 18)
+            progresso = (
+                decorrido / 250
+            )
+
+            raio = int(
+                5 + progresso * 20
+            )
 
             pygame.draw.circle(
                 tela,
                 (255, 190, 70),
-                (int(x - cam.x), int(y - cam.y)),
+                (
+                    int(x - cam.x),
+                    int(y - cam.y)
+                ),
                 raio,
-                2
+                3
             )
+
+        # HUD
 
         desenhar_hud(
             tela,
             jogador,
             inimigos,
             pontuacao,
-            fase
+            fase,
+            tempo
         )
 
-        pygame.display.update()
+        pygame.display.flip()
+
+    return True

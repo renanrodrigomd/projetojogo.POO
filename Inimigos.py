@@ -431,71 +431,195 @@ class InimigoBlindado(Inimigo):
 class InimigoExplosivo(Inimigo):
 
     def __init__(self, x, y):
-        
+
         super().__init__(x, y)
+
+        self.largura = 56
+        self.altura = 70
+
+        self.posy = (
+            self.chao_y
+            - self.altura
+        )
 
         self.vida = 2
 
-        # Começa devagar.
         self.velocidade = 1
 
-        # Velocidade depois que leva o primeiro tiro.
         self.velocidade_correndo = 6
 
         self.correndo = False
+
         self.explodiu = False
 
-    def mover(self, player_x, player_y):
+        # Usa o robô que já existe no projeto
+        self.sprite = pygame.image.load(
+            asset(
+                "enemys",
+                "robo.png"
+            )
+        ).convert_alpha()
+
+        self.sprite = pygame.transform.smoothscale(
+            self.sprite,
+            (56, 70)
+        )
+
+    def mover(
+        self,
+        player_x,
+        player_y
+    ):
+
         if not self.vivo:
             return
 
-        # Depois de ser atingido, ele não para mais.
-        velocidade = (
-            self.velocidade_correndo
-            if self.correndo
-            else self.velocidade
+        if self.correndo:
+
+            velocidade = (
+                self.velocidade_correndo
+            )
+
+        else:
+
+            velocidade = (
+                self.velocidade
+            )
+
+        distancia_x = (
+            player_x
+            - self.posx
         )
 
-        distancia_x = player_x - self.posx
-
         if distancia_x > 0:
+
             self.posx += velocidade
+
         elif distancia_x < 0:
+
             self.posx -= velocidade
 
-        self.posx = max(0, min(self.posx, self.largura_mapa - self.largura))
-        self.posy = self.chao_y - self.altura
+        self.posx = max(
+            0,
+            min(
+                self.posx,
+                self.largura_mapa
+                - self.largura
+            )
+        )
+
+        self.posy = (
+            self.chao_y
+            - self.altura
+        )
 
     def atirar(self):
-        # O explosivo não possui ataque à distância.
+
+        # Esse inimigo não atira.
         return
 
     def receber_dano(self):
+
         if not self.vivo:
             return
 
         self.vida -= 1
 
-        # O primeiro tiro faz o inimigo correr.
+        # Quando recebe o primeiro tiro,
+        # começa a correr atrás do jogador.
         self.correndo = True
 
         if self.vida <= 0:
+
             self.vivo = False
+
             self.explodiu = True
 
-    def desenhar(self, tela, camera_x=0, camera_y=0):
+    def desenhar(
+        self,
+        tela,
+        camera_x=0,
+        camera_y=0
+    ):
+
         if not self.vivo:
             return
 
-        cor = (255, 120, 0) if self.correndo else (255, 200, 0)
+        x = int(
+            self.posx
+            - camera_x
+        )
 
-        pygame.draw.rect(
+        y = int(
+            self.posy
+            - camera_y
+        )
+
+        # Aura de perigo
+        if self.correndo:
+
+            pulso = 10 + int(
+                4 * pygame.math.Vector2(
+                    1,
+                    0
+                ).rotate(
+                    pygame.time.get_ticks() / 80
+                ).x
+            )
+
+            pygame.draw.circle(
+                tela,
+                (255, 85, 45),
+                (
+                    x + self.largura // 2,
+                    y + self.altura // 2
+                ),
+                35 + abs(pulso),
+                3
+            )
+
+        # Sprite
+        tela.blit(
+            self.sprite,
+            (x, y)
+        )
+
+        # Indicador de perigo
+        cor = (
+            (255, 80, 50)
+            if self.correndo
+            else
+            (255, 190, 60)
+        )
+
+        pygame.draw.circle(
             tela,
             cor,
             (
-                self.posx - camera_x,
-                self.posy - camera_y,
-                self.largura,
-                self.altura
+                x + self.largura // 2,
+                y + 12
+            ),
+            9
+        )
+
+        fonte = pygame.font.SysFont(
+            "arial",
+            14,
+            bold=True
+        )
+
+        alerta = fonte.render(
+            "!",
+            True,
+            (20, 20, 20)
+        )
+
+        tela.blit(
+            alerta,
+            alerta.get_rect(
+                center=(
+                    x + self.largura // 2,
+                    y + 12
+                )
             )
         )
