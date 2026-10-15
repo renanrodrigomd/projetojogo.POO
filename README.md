@@ -33,7 +33,7 @@ O jogador deve:
 * Coletar itens
 * Chegar ao final do mapa
 
-Objetivo final: completar todas as fases e derrotar Romero Merito
+Objetivo final: Derrotar Todos os Inimigos
 
 ---
 
@@ -52,7 +52,6 @@ Gebeto é um humano modificado criado por seu pai, um cientista obcecado pela cr
 **Atributos:**
 
 * Vida
-* Armas
 * Tempo de fase
 
 ---
@@ -63,15 +62,17 @@ Gebeto é um humano modificado criado por seu pai, um cientista obcecado pela cr
 
 * Robôs terrestres
 * Robôs aéreos
+* Explosivo
+* Tank Blindado
 
 **Comportamentos:**
 
 * Perseguem o jogador
-* Permanecem parados como obstáculos
+* Permanecem parados como obstáculos quando atiram
 
 **Colisão:**
 
-* O jogador perde vida ao encostar em inimigos, tiros ou explosões
+* O jogador perde vida ao levar tiro, caso o atinja
 
 ---
 
@@ -82,7 +83,6 @@ Cidade destruída/caótica.
 **Elementos:**
 
 * Prédios em ruínas
-* Fogo
 * Estruturas em ruínas
 
 **Mapa:**
@@ -93,8 +93,7 @@ Cidade destruída/caótica.
 
 **Itens:**
 
-* Dropados por inimigos
-* Incluem armas e melhorias
+
 
 ---
 
@@ -114,18 +113,17 @@ Baseado no tempo de conclusão da fase:
 
 ## 8. Sistema de Vida
 
-* 3 vidas por fase
+* 3 vidas 
 
 **Perde vida ao:**
 
-* Encostar em inimigos
+
 * Ser atingido por tiros
 * Entrar em explosões
 
 **Ao perder todas as vidas:**
 
-* A fase reinicia
-* Sem melhorias acumuladas
+
 
 ---
 
@@ -175,42 +173,43 @@ Organização sugerida:
 * `Mapa.py` → cenário
 * `Jogo.py` → lógica principal
 * `Menu.py` → interface
-* `Fases.py` → controle de fases
+* `spawn.py` -> Distribuição dos Inimigos ao longo do mapa
 
 ---
 
 ## 13. Funcionalidades Mínimas
 
-Primeira versão deve conter:
+Versão atual:
 
 * Movimento do jogador
 * Sistema de pulo
 * Colisão
 * Inimigos básicos
-* Sistema de vida
+* Sistema de Tiro
+* Sprites
 * Final de fase
-* Menu simples
+* Menu Completo
 
 ---
 
 ## 14. Melhorias Futuras
 
-* Agachar
-* Tiros diagonais
+* Agachar: não tem
+* Tiros diagonais: Já possui
 * Novos tipos de inimigos
-* Sistema de upgrades
-* Mais armas
-* Mais fases
-* Chefes intermediários
+* Sistema de upgrades: Não tem
+* Mais armas: não tem
+* Mais fases: não tem
+* Chefes intermediários: não tem
 * Melhorias visuais e sonoras
-* Recarga de munição
-* Trocar de arma durante a fase
+* Recarga de munição: não tem
+* Trocar de arma durante a fase: não tem
 
 ---
 
 ## 🧠 Boss Final
 
-**Nome:** Romero Merito
+**Nome:** Romero Merito: não foi implementado ainda.
 
 O chefe final representa o ápice do sistema robótico e será o maior desafio do jogo, exigindo habilidade e estratégia do jogador.
  
