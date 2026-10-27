@@ -336,7 +336,7 @@ def desenhar_cenario(
     ):
         tela.blit(
             chao,
-            (x, CHAO_Y - camera_y)
+            (x, CHAO_Y - 75 - camera_y)
         )
 
 
@@ -836,6 +836,7 @@ def iniciar_jogo():
 
         
         
+        
         # Efeitos de impacto
 
         agora = pygame.time.get_ticks()
@@ -845,23 +846,79 @@ def iniciar_jogo():
 
             decorrido = agora - tempo_impacto
 
-            if decorrido >= 120:
+            duracao = 180
+
+            if decorrido >= duracao:
                 impactos.remove(impacto)
                 continue
 
-            progresso = decorrido / 120
+            progresso = decorrido / duracao
 
             tela_x = int(x - cam.x)
             tela_y = int(y - cam.y)
 
-            raio = max(1, int(5 * (1 - progresso)))
+            # Anel de energia em expansão
+            raio = int(3 + progresso * 15)
 
             pygame.draw.circle(
                 tela,
-                (255, 220, 140),
+                (255, 170, 55),
                 (tela_x, tela_y),
-                raio
+                raio,
+                2
             )
+
+            # Clarão central que desaparece rapidamente
+            if progresso < 0.35:
+                raio_central = max(
+                    1,
+                    int(5 * (1 - progresso / 0.35))
+                )
+
+                pygame.draw.circle(
+                    tela,
+                    (255, 240, 190),
+                    (tela_x, tela_y),
+                    raio_central
+                )
+
+            # Faíscas que se afastam do ponto de impacto
+            for angulo in range(0, 360, 45):
+                radianos = math.radians(angulo)
+
+                distancia_final = 5 + progresso * 20
+                distancia_inicial = max(
+                    0,
+                    distancia_final - 7
+                )
+
+                inicio_x = int(
+                    tela_x
+                    + math.cos(radianos) * distancia_inicial
+                )
+
+                inicio_y = int(
+                    tela_y
+                    + math.sin(radianos) * distancia_inicial
+                )
+
+                fim_x = int(
+                    tela_x
+                    + math.cos(radianos) * distancia_final
+                )
+
+                fim_y = int(
+                    tela_y
+                    + math.sin(radianos) * distancia_final
+                )
+
+                pygame.draw.line(
+                    tela,
+                    (255, 210, 100),
+                    (inicio_x, inicio_y),
+                    (fim_x, fim_y),
+                    2
+                )
 
 
         # HUD
