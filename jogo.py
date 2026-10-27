@@ -1,4 +1,6 @@
 import pygame
+import math
+import random
 
 from caminhos import asset
 from camera import Camera
@@ -286,10 +288,14 @@ def desenhar_cenario(
     camera_y
 ):
 
-    # Fundo repetido
+    
+    # Fundo com efeito de paralaxe
+
+    fator_paralaxe = 0.35
+    deslocamento_fundo = int(camera_x * fator_paralaxe)
 
     inicio_x = (
-        -(camera_x % background.get_width())
+        -(deslocamento_fundo % background.get_width())
         - background.get_width()
     )
 
@@ -298,29 +304,11 @@ def desenhar_cenario(
         LARGURA + background.get_width(),
         background.get_width()
     ):
-
         tela.blit(
             background,
             (x, -camera_y)
         )
 
-    # Chão
-
-    inicio_chao = (
-        -(camera_x % chao.get_width())
-        - chao.get_width()
-    )
-
-    for x in range(
-        inicio_chao,
-        LARGURA + chao.get_width(),
-        chao.get_width()
-    ):
-
-        tela.blit(
-            chao,
-            (x, CHAO_Y - 20 - camera_y)
-        )
 
     # Parte inferior
 
@@ -686,36 +674,27 @@ def iniciar_jogo():
                     else:
                         jogador.posx += 55
 
+        
         # Tiros do jogador
 
         for tiro in jogador.tiros[:]:
-
             for inimigo in inimigos:
-
                 if not inimigo.vivo:
                     continue
 
-                if tiro.get_rect().colliderect(
-                    inimigo.get_rect()
-                ):
-
+                if tiro.get_rect().colliderect(inimigo.get_rect()):
                     impacto = tiro.criar_impacto()
 
+                    # Efeito visual simples: sem explosão
                     impactos.append([
                         impacto[0],
                         impacto[1],
                         pygame.time.get_ticks()
                     ])
 
-                    if isinstance(
-                        inimigo,
-                        InimigoExplosivo
-                    ):
-
+                    if isinstance(inimigo, InimigoExplosivo):
                         inimigo.receber_dano()
-
                     else:
-
                         inimigo.vida -= 1
 
                         if inimigo.vida <= 0:
@@ -725,6 +704,7 @@ def iniciar_jogo():
                         pontuacao += 100
 
                     break
+
 
         # Tiros dos inimigos
 
@@ -837,44 +817,35 @@ def iniciar_jogo():
             cam.y
         )
 
+        
+        
         # Efeitos de impacto
 
         agora = pygame.time.get_ticks()
 
         for impacto in impactos[:]:
-
             x, y, tempo_impacto = impacto
 
-            decorrido = (
-                agora - tempo_impacto
-            )
+            decorrido = agora - tempo_impacto
 
-            if decorrido >= 250:
-
-                impactos.remove(
-                    impacto
-                )
-
+            if decorrido >= 120:
+                impactos.remove(impacto)
                 continue
 
-            progresso = (
-                decorrido / 250
-            )
+            progresso = decorrido / 120
 
-            raio = int(
-                5 + progresso * 20
-            )
+            tela_x = int(x - cam.x)
+            tela_y = int(y - cam.y)
+
+            raio = max(1, int(5 * (1 - progresso)))
 
             pygame.draw.circle(
                 tela,
-                (255, 190, 70),
-                (
-                    int(x - cam.x),
-                    int(y - cam.y)
-                ),
-                raio,
-                3
+                (255, 220, 140),
+                (tela_x, tela_y),
+                raio
             )
+
 
         # HUD
 
