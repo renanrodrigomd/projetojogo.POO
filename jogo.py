@@ -310,6 +310,7 @@ def desenhar_cenario(
         )
 
 
+    
     # Parte inferior
 
     pygame.draw.rect(
@@ -322,6 +323,22 @@ def desenhar_cenario(
             ALTURA
         )
     )
+
+    # Textura do chão repetida horizontalmente
+
+    largura_chao = chao.get_width()
+    inicio_x = -(int(camera_x) % largura_chao)
+
+    for x in range(
+        inicio_x - largura_chao,
+        LARGURA + largura_chao,
+        largura_chao
+    ):
+        tela.blit(
+            chao,
+            (x, CHAO_Y - camera_y)
+        )
+
 
     # Linha do chão
 
