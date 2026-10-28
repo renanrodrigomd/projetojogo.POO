@@ -1,15 +1,15 @@
-import pygame
-import math
 
-from caminhos import asset
-from Personagem import Personagem
+import math
+import pygame
 from tiros import Tiro, Missil
 
 
-class Inimigo(Personagem):
-
+class Inimigo:
     def __init__(self, x, y, chao_y=610, largura_mapa=10000):
-        super().__init__(x, y)
+        self.posx = float(x)
+        self.posy = float(y)
+        self.largura = 40
+        self.altura = 60
 
         self.chao_y = chao_y
         self.largura_mapa = largura_mapa
@@ -17,36 +17,33 @@ class Inimigo(Personagem):
         self.vivo = True
         self.vida = 2
         self.velocidade = 3
-
         self.alcance_ataque = 500
         self.cooldown_tiro = 2000
+        self.ultimo_tiro = 0
 
-        # O inimigo usa ângulos em vez das 5 direções do Player.
         self.angulo_olhar = 0
+        self.tiros = []
 
-    def mover(self, player_x, player_y):
-        pass
+    def get_rect(self):
+        return pygame.Rect(
+            round(self.posx),
+            round(self.posy),
+            self.largura,
+            self.altura
+        )
 
     def olhar_player(self, player_x, player_y):
         centro_x = self.posx + self.largura / 2
         centro_y = self.posy + self.altura / 2
 
-        distancia_x = player_x - centro_x
-        distancia_y = player_y - centro_y
+        dx = player_x - centro_x
+        dy = player_y - centro_y
 
-        # Calcula o ângulo real entre o inimigo e o Player.
-        angulo = math.degrees(
-            math.atan2(distancia_y, distancia_x)
-        )
-
-        # Converte o ângulo para um dos 16 raios disponíveis.
-        passo = 360 / 16
-
-        self.angulo_olhar = round(
-            angulo / passo
-        ) * passo
-
-        self.angulo_olhar %= 360
+        if dx != 0 or dy != 0:
+            angulo = math.degrees(math.atan2(dy, dx))
+            passo = 360 / 16
+            self.angulo_olhar = round(angulo / passo) * passo
+            self.angulo_olhar %= 360
 
     def pode_atacar(self, player_x, player_y):
         centro_x = self.posx + self.largura / 2
@@ -59,7 +56,13 @@ class Inimigo(Personagem):
 
         return distancia <= self.alcance_ataque
 
+    def mover(self, player_x, player_y):
+        pass
+
     def atirar(self):
+        if not self.vivo:
+            return
+
         agora = pygame.time.get_ticks()
 
         if agora - self.ultimo_tiro < self.cooldown_tiro:
@@ -67,146 +70,128 @@ class Inimigo(Personagem):
 
         self.ultimo_tiro = agora
 
-        radianos = math.radians(
-            self.angulo_olhar
-        )
-
+        radianos = math.radians(self.angulo_olhar)
         dx = math.cos(radianos)
         dy = math.sin(radianos)
 
-        x = self.posx + self.largura // 2
-        y = self.posy + self.altura // 2
+        x = self.posx + self.largura / 2
+        y = self.posy + self.altura / 2
 
-        tiro = Tiro(
-            x,
-            y,
-            dx,
-            dy
-        )
+        self.tiros.append(Tiro(x, y, dx, dy))
 
-        self.tiros.append(tiro)
+    def receber_dano(self):
+        if not self.vivo:
+            return
+
+        self.vida -= 1
+
+        if self.vida <= 0:
+            self.vivo = False
+
+    def atualizar_tiros(self):
+        for tiro in self.tiros[:]:
+            tiro.atualizar()
+
+            if not tiro.ativo:
+                self.tiros.remove(tiro)
 
     def atualizar(self):
-        if not self.vivo:
-            return
-
         self.atualizar_tiros()
 
-    def desenhar(self, tela, camera_x=0, camera_y=0):
-        if not self.vivo:
-            return
-
-        pygame.draw.rect(
-            tela,
-            (255, 0, 0),
-            (
-                self.posx - camera_x,
-                self.posy - camera_y,
-                self.largura,
-                self.altura
-            )
-        )
-
-        radianos = math.radians(
-            self.angulo_olhar
-        )
-
-        dx = math.cos(radianos)
-        dy = math.sin(radianos)
-
-        comprimento = 120
-
-        inicio = (
-            self.posx - camera_x + self.largura // 2,
-            self.posy - camera_y + self.altura // 2
-        )
-
-        fim = (
-            inicio[0] + dx * comprimento,
-            inicio[1] + dy * comprimento
-        )
-
-        pygame.draw.line(
-            tela,
-            (0, 255, 0),
-            inicio,
-            fim,
-            3
-        )
-
+    def _desenhar_tiros(self, tela, camera_x, camera_y):
         for tiro in self.tiros:
             tiro.desenhar(tela, camera_x, camera_y)
 
+    def desenhar(self, tela, camera_x=0, camera_y=0):
+        if self.vivo:
+            ret = self.get_rect()
+            ret.move_ip(-camera_x, -camera_y)
+
+            pygame.draw.rect(tela, (180, 55, 55), ret, border_radius=5)
+            pygame.draw.rect(tela, (255, 190, 100), ret, 2, border_radius=5)
+
+        self._desenhar_tiros(tela, camera_x, camera_y)
+
 
 class InimigoTerrestre(Inimigo):
-
     def __init__(self, x, y, chao_y=610, largura_mapa=10000):
         super().__init__(x, y, chao_y, largura_mapa)
 
-        # Sprite do robô terrestre.
-        self.sprite = pygame.image.load(
-            asset("enemys", "robo.png")
-        ).convert_alpha()
-        self.sprite = pygame.transform.smoothscale(
-            self.sprite,
-            (56, 70)
-        )
-
         self.largura = 56
         self.altura = 70
+        self.vida = 2
+        self.velocidade = 3
+        self.alcance_ataque = 420
+        self.cooldown_tiro = 1800
+
         self.posy = self.chao_y - self.altura
 
     def mover(self, player_x, player_y):
         if not self.vivo:
             return
 
-        distancia = player_x - self.posx
+        distancia = player_x - (self.posx + self.largura / 2)
 
-        if abs(distancia) > self.alcance_ataque:
+        if abs(distancia) > self.alcance_ataque * 0.65:
+            direcao = 1 if distancia > 0 else -1
+            self.posx += direcao * self.velocidade
 
-            if distancia > 0:
-                self.posx += self.velocidade
-            else:
-                self.posx -= self.velocidade
+        self.posx = max(
+            0,
+            min(self.posx, self.largura_mapa - self.largura)
+        )
 
-        self.posx = max(0, min(self.posx, self.largura_mapa - self.largura))
         self.posy = self.chao_y - self.altura
 
     def desenhar(self, tela, camera_x=0, camera_y=0):
-        if not self.vivo:
-            return
+        if self.vivo:
+            x = round(self.posx - camera_x)
+            y = round(self.posy - camera_y)
 
-        tela.blit(
-            self.sprite,
-            (self.posx - camera_x, self.posy - camera_y)
-        )
+            # Pernas mecânicas
+            pygame.draw.rect(tela, (75, 86, 99), (x + 9, y + 48, 13, 19))
+            pygame.draw.rect(tela, (75, 86, 99), (x + 34, y + 48, 13, 19))
 
-        for tiro in self.tiros:
-            tiro.desenhar(tela, camera_x, camera_y)
+            # Corpo e cabeça
+            pygame.draw.rect(
+                tela, (126, 145, 160),
+                (x + 5, y + 18, 46, 34), border_radius=5
+            )
+            pygame.draw.rect(
+                tela, (190, 202, 211),
+                (x + 9, y + 4, 38, 26), border_radius=5
+            )
+
+            # Visor
+            pygame.draw.rect(
+                tela, (30, 42, 53),
+                (x + 13, y + 11, 30, 11), border_radius=3
+            )
+            pygame.draw.circle(tela, (255, 220, 65), (x + 21, y + 16), 3)
+            pygame.draw.circle(tela, (255, 220, 65), (x + 35, y + 16), 3)
+
+            # Detalhes do corpo
+            pygame.draw.rect(tela, (45, 55, 67), (x + 18, y + 34, 20, 8))
+            pygame.draw.line(tela, (255, 180, 55), (x + 20, y + 38), (x + 36, y + 38), 2)
+
+        self._desenhar_tiros(tela, camera_x, camera_y)
 
 
 class InimigoAereo(Inimigo):
-
     def __init__(self, x, y, chao_y=610, largura_mapa=10000):
         super().__init__(x, y, chao_y, largura_mapa)
 
-        self.sprite = pygame.image.load(
-            asset("enemys", "dronelegal.png")
-        ).convert_alpha()
-
-        
         self.largura = 70
-        self.altura = 70
-
+        self.altura = 50
         self.vida = 2
         self.velocidade = 2
-        
+        self.alcance_ataque = 500
+        self.cooldown_tiro = 1600
 
-        # Distância horizontal que ele tenta manter do Player.
-        self.distancia_minima = 250
-
-        # Altura que ele tenta manter em relação ao Player.
-        self.distancia_vertical = 180
+        self.distancia_minima = 230
+        self.distancia_vertical = 120
+        self.altura_minima = 40
+        self.altura_maxima = chao_y - 100
 
     def mover(self, player_x, player_y):
         if not self.vivo:
@@ -215,162 +200,117 @@ class InimigoAereo(Inimigo):
         centro_x = self.posx + self.largura / 2
         centro_y = self.posy + self.altura / 2
 
-        distancia_x = player_x - centro_x
-        distancia_y = player_y - centro_y
+        dx = player_x - centro_x
+        dy = player_y - centro_y
 
-        # Mantém uma distância horizontal para não ficar
-        # exatamente em cima do Player.
-        if abs(distancia_x) > self.distancia_minima:
+        # Aproxima-se até alcançar a distância de combate.
+        if abs(dx) > self.distancia_minima:
+            self.posx += self.velocidade if dx > 0 else -self.velocidade
 
-            if distancia_x > 0:
-                self.posx += self.velocidade
-            else:
-                self.posx -= self.velocidade
+        # Ajusta a altitude para acompanhar o jogador.
+        if abs(dy) > self.distancia_vertical:
+            self.posy += self.velocidade if dy > 0 else -self.velocidade
 
-        # Mantém uma distância vertical do Player.
-        if abs(distancia_y) > self.distancia_vertical:
-
-            if distancia_y > 0:
-                self.posy += self.velocidade
-            else:
-                self.posy -= self.velocidade
-
-    def desenhar(self, tela, camera_x=0, camera_y=0):
-        if not self.vivo:
-            return
-
-        tela.blit(
-            self.sprite,
-            (self.posx - camera_x, self.posy - camera_y)
+        self.posx = max(
+            0,
+            min(self.posx, self.largura_mapa - self.largura)
         )
 
-        for tiro in self.tiros:
-            tiro.desenhar(tela, camera_x, camera_y)
+        self.posy = max(
+            self.altura_minima,
+            min(self.posy, self.altura_maxima)
+        )
+
+    def desenhar(self, tela, camera_x=0, camera_y=0):
+        if self.vivo:
+            x = round(self.posx - camera_x)
+            y = round(self.posy - camera_y)
+
+            # Asas
+            pygame.draw.polygon(
+                tela, (66, 115, 139),
+                [(x + 8, y + 20), (x - 2, y + 9),
+                 (x + 21, y + 17), (x + 24, y + 32)]
+            )
+            pygame.draw.polygon(
+                tela, (66, 115, 139),
+                [(x + 62, y + 20), (x + 72, y + 9),
+                 (x + 49, y + 17), (x + 46, y + 32)]
+            )
+
+            # Corpo do drone
+            pygame.draw.ellipse(
+                tela, (117, 157, 176),
+                (x + 15, y + 8, 40, 34)
+            )
+            pygame.draw.ellipse(
+                tela, (205, 226, 235),
+                (x + 23, y + 12, 24, 17)
+            )
+
+            # Sensor e propulsores
+            pygame.draw.circle(tela, (35, 50, 64), (x + 35, y + 21), 7)
+            pygame.draw.circle(tela, (60, 225, 255), (x + 35, y + 21), 4)
+            pygame.draw.circle(tela, (60, 225, 255), (x + 8, y + 11), 4)
+            pygame.draw.circle(tela, (60, 225, 255), (x + 62, y + 11), 4)
+
+            pygame.draw.line(
+                tela, (60, 225, 255),
+                (x + 35, y + 42), (x + 35, y + 49), 3
+            )
+
+        self._desenhar_tiros(tela, camera_x, camera_y)
 
 
 class InimigoBlindado(Inimigo):
-
     def __init__(self, x, y, chao_y=610, largura_mapa=10000):
-
         super().__init__(x, y, chao_y, largura_mapa)
 
-        self.frame_atual = 0
-        self.tempo_ultimo_frame = pygame.time.get_ticks()
-        self.velocidade_animacao = 100
+        self.largura = 110
+        self.altura = 75
+        self.vida = 8
+        self.velocidade = 1.2
+        self.alcance_ataque = 600
+        self.cooldown_tiro = 2800
 
-        # Começa parado
+        self.posy = self.chao_y - self.altura
+        self.tempo_ultimo_frame = pygame.time.get_ticks()
+        self.frame_atual = 0
+        self.velocidade_animacao = 150
         self.andando = False
 
-        self.vida = 8
-        self.velocidade = 1.5
-        self.alcance_ataque = 600
-
-        # O blindado dispara mais devagar.
-        self.cooldown_tiro = 4000
-
-        # Carrega a spritesheet do tank boladissimo
-        spritesheet = pygame.image.load(
-            asset("enemys", "tank.png")
-        ).convert_alpha()
-
-        # Quantidade de colunas e linhas
-        COLUNAS = 2
-        LINHAS = 6
-
-        # Calcula o tamanho de cada espaço
-        largura_frame = spritesheet.get_width() // COLUNAS
-        altura_frame = spritesheet.get_height() // LINHAS
-
-        # Lista dos frames
-        self.frames = []
-
-        # Queremos apenas 11 sprites
-        for i in range(11):
-
-            # Descobre coluna e linha
-            coluna = i % COLUNAS
-            linha = i // COLUNAS
-
-            # Posição do frame
-            x = coluna * largura_frame
-            y = linha * altura_frame
-
-            # Recorta o frame
-            frame = spritesheet.subsurface(
-                pygame.Rect(
-                    x,
-                    y,
-                    largura_frame,
-                    altura_frame
-                )
-            ).copy()
-
-            # Redimensiona
-            frame = pygame.transform.scale(
-                frame,
-                (120, 100)
-            )
-
-            self.frames.append(frame)
-
     def mover(self, player_x, player_y):
-
         if not self.vivo:
             return
 
-        # Começa considerando que está parado
-        self.andando = False
+        distancia = player_x - (self.posx + self.largura / 2)
+        self.andando = abs(distancia) > self.alcance_ataque
 
-        distancia = player_x - self.posx
+        if self.andando:
+            self.posx += self.velocidade if distancia > 0 else -self.velocidade
 
-        # Só anda se estiver longe do jogador
-        if abs(distancia) > self.alcance_ataque:
+        self.posx = max(
+            0,
+            min(self.posx, self.largura_mapa - self.largura)
+        )
 
-            if distancia > 0:
-                self.posx += self.velocidade
-                self.andando = True
-
-            elif distancia < 0:
-                self.posx -= self.velocidade
-                self.andando = True
-
-        self.posx = max(0, min(self.posx, self.largura_mapa - self.largura))
         self.posy = self.chao_y - self.altura
 
     def atualizar_animacao(self):
-
-        # Se não está andando, fica no primeiro frame
-        if not self.andando:
-
-            self.frame_atual = 0
-
-            return
-
         agora = pygame.time.get_ticks()
 
         if agora - self.tempo_ultimo_frame >= self.velocidade_animacao:
-
-            self.frame_atual += 1
-
-            # Volta para o primeiro frame
-            if self.frame_atual >= len(self.frames):
-
-                self.frame_atual = 0
-
+            self.frame_atual = (self.frame_atual + 1) % 2
             self.tempo_ultimo_frame = agora
 
     def atualizar(self):
-
-        if not self.vivo:
-            return
-
-        # Só troca os frames se estiver andando
         self.atualizar_animacao()
-
-        # Continua atualizando os tiros
         self.atualizar_tiros()
 
     def atirar(self):
+        if not self.vivo:
+            return
+
         agora = pygame.time.get_ticks()
 
         if agora - self.ultimo_tiro < self.cooldown_tiro:
@@ -378,248 +318,168 @@ class InimigoBlindado(Inimigo):
 
         self.ultimo_tiro = agora
 
-        radianos = math.radians(
-            self.angulo_olhar
-        )
-
+        radianos = math.radians(self.angulo_olhar)
         dx = math.cos(radianos)
         dy = math.sin(radianos)
 
-        x = self.posx + self.largura // 2
-        y = self.posy + self.altura // 2
+        x = self.posx + self.largura / 2
+        y = self.posy + self.altura / 2
 
-        missil = Missil(
-            x,
-            y,
-            dx,
-            dy
-        )
-
-        self.tiros.append(missil)
+        self.tiros.append(Missil(x, y, dx, dy))
 
     def desenhar(self, tela, camera_x=0, camera_y=0):
+        if self.vivo:
+            x = round(self.posx - camera_x)
+            y = round(self.posy - camera_y)
 
-        if not self.vivo:
-            return
-
-        # Verifica se existem frames
-        if len(self.frames) == 0:
-            print("ERRO: nenhum frame foi carregado!")
-            return
-
-        # Garante que o número do frame é válido
-        if self.frame_atual >= len(self.frames):
-            self.frame_atual = 0
-
-        # O sprite do tanque possui uma pequena margem visual na parte inferior.
-       
-        sprite_offset_y = -10
-
-        tela.blit(
-            self.frames[self.frame_atual],
-            (
-                self.posx - camera_x,
-                self.posy - camera_y + sprite_offset_y
+            # Esteiras
+            pygame.draw.rect(
+                tela, (37, 43, 50),
+                (x + 4, y + 49, 102, 22), border_radius=7
             )
-        )
 
-        # Desenha os mísseis
-        for tiro in self.tiros:
-            tiro.desenhar(tela, camera_x, camera_y)
+            for roda_x in range(x + 15, x + 101, 17):
+                pygame.draw.circle(tela, (115, 126, 135), (roda_x, y + 60), 6)
+                pygame.draw.circle(tela, (45, 51, 58), (roda_x, y + 60), 3)
+
+            # Blindagem
+            pygame.draw.polygon(
+                tela, (87, 105, 119),
+                [(x + 7, y + 49), (x + 14, y + 26),
+                 (x + 39, y + 17), (x + 84, y + 17),
+                 (x + 101, y + 34), (x + 105, y + 49)]
+            )
+
+            pygame.draw.rect(
+                tela, (145, 160, 171),
+                (x + 30, y + 10, 38, 22), border_radius=4
+            )
+
+            # Canhão
+            pygame.draw.rect(
+                tela, (177, 188, 197),
+                (x + 57, y + 15, 43, 8), border_radius=2
+            )
+
+            # Luz de alerta
+            cor_luz = (255, 100, 55) if self.frame_atual == 0 else (255, 190, 55)
+            pygame.draw.circle(tela, cor_luz, (x + 43, y + 21), 5)
+
+            # Placas de blindagem
+            pygame.draw.line(
+                tela, (222, 170, 65),
+                (x + 20, y + 36), (x + 91, y + 36), 3
+            )
+
+            barra_largura = 90
+            vida_atual = max(0, min(self.vida, 8))
+            pygame.draw.rect(tela, (55, 55, 55), (x + 10, y - 9, barra_largura, 5))
+            pygame.draw.rect(
+                tela, (235, 75, 65),
+                (x + 10, y - 9, barra_largura * vida_atual / 8, 5)
+            )
+
+        self._desenhar_tiros(tela, camera_x, camera_y)
 
 
 class InimigoExplosivo(Inimigo):
-
-    def __init__(self, x, y):
-
-        super().__init__(x, y)
+    def __init__(self, x, y, chao_y=610, largura_mapa=10000):
+        super().__init__(x, y, chao_y, largura_mapa)
 
         self.largura = 56
         self.altura = 70
-
-        self.posy = (
-            self.chao_y
-            - self.altura
-        )
-
         self.vida = 2
 
         self.velocidade = 1
-
         self.velocidade_correndo = 6
+        self.alcance_ataque = 90
 
         self.correndo = False
-
         self.explodiu = False
+        self.raio_explosao = 80
 
-        # Usa o robô que já existe no projeto
-        self.sprite = pygame.image.load(
-            asset(
-                "enemys",
-                "robo.png"
-            )
-        ).convert_alpha()
+        self.posy = self.chao_y - self.altura
 
-        self.sprite = pygame.transform.smoothscale(
-            self.sprite,
-            (56, 70)
-        )
-
-    def mover(
-        self,
-        player_x,
-        player_y
-    ):
-
+    def mover(self, player_x, player_y):
         if not self.vivo:
             return
 
-        if self.correndo:
+        centro_x = self.posx + self.largura / 2
+        distancia = player_x - centro_x
 
-            velocidade = (
-                self.velocidade_correndo
-            )
-
-        else:
-
-            velocidade = (
-                self.velocidade
-            )
-
-        distancia_x = (
-            player_x
-            - self.posx
+        velocidade = (
+            self.velocidade_correndo
+            if self.correndo
+            else self.velocidade
         )
 
-        if distancia_x > 0:
-
-            self.posx += velocidade
-
-        elif distancia_x < 0:
-
-            self.posx -= velocidade
+        if distancia != 0:
+            self.posx += velocidade if distancia > 0 else -velocidade
 
         self.posx = max(
             0,
-            min(
-                self.posx,
-                self.largura_mapa
-                - self.largura
-            )
+            min(self.posx, self.largura_mapa - self.largura)
         )
 
-        self.posy = (
-            self.chao_y
-            - self.altura
-        )
+        self.posy = self.chao_y - self.altura
 
     def atirar(self):
-
-        # Esse inimigo não atira.
+        # Este inimigo persegue o jogador em vez de disparar projéteis.
         return
 
     def receber_dano(self):
-
         if not self.vivo:
             return
 
         self.vida -= 1
-
-        # Quando recebe o primeiro tiro,
-        # começa a correr atrás do jogador.
         self.correndo = True
 
         if self.vida <= 0:
-
             self.vivo = False
-
             self.explodiu = True
 
-    def desenhar(
-        self,
-        tela,
-        camera_x=0,
-        camera_y=0
-    ):
+    def desenhar(self, tela, camera_x=0, camera_y=0):
+        if self.vivo:
+            x = round(self.posx - camera_x)
+            y = round(self.posy - camera_y)
 
-        if not self.vivo:
-            return
+            centro = (x + self.largura // 2, y + self.altura // 2)
 
-        x = int(
-            self.posx
-            - camera_x
-        )
-
-        y = int(
-            self.posy
-            - camera_y
-        )
-
-        # Aura de perigo
-        if self.correndo:
-
-            pulso = 10 + int(
-                4 * pygame.math.Vector2(
-                    1,
-                    0
-                ).rotate(
-                    pygame.time.get_ticks() / 80
-                ).x
-            )
-
-            pygame.draw.circle(
-                tela,
-                (255, 85, 45),
-                (
-                    x + self.largura // 2,
-                    y + self.altura // 2
-                ),
-                35 + abs(pulso),
-                3
-            )
-
-        # Sprite
-        tela.blit(
-            self.sprite,
-            (x, y)
-        )
-
-        # Indicador de perigo
-        cor = (
-            (255, 80, 50)
-            if self.correndo
-            else
-            (255, 190, 60)
-        )
-
-        pygame.draw.circle(
-            tela,
-            cor,
-            (
-                x + self.largura // 2,
-                y + 12
-            ),
-            9
-        )
-
-        fonte = pygame.font.SysFont(
-            "arial",
-            14,
-            bold=True
-        )
-
-        alerta = fonte.render(
-            "!",
-            True,
-            (20, 20, 20)
-        )
-
-        tela.blit(
-            alerta,
-            alerta.get_rect(
-                center=(
-                    x + self.largura // 2,
-                    y + 12
+            # Efeito pulsante quando o robô começa a correr.
+            if self.correndo:
+                pulso = int(pygame.time.get_ticks() / 70) % 8
+                pygame.draw.circle(
+                    tela, (255, 80, 45),
+                    centro, 36 + pulso, 3
                 )
+
+            # Pernas
+            pygame.draw.rect(tela, (90, 58, 48), (x + 8, y + 48, 13, 18))
+            pygame.draw.rect(tela, (90, 58, 48), (x + 35, y + 48, 13, 18))
+
+            # Corpo danificado
+            pygame.draw.polygon(
+                tela, (176, 71, 43),
+                [(x + 9, y + 24), (x + 17, y + 12),
+                 (x + 39, y + 12), (x + 49, y + 26),
+                 (x + 45, y + 52), (x + 12, y + 52)]
             )
-        )
+
+            pygame.draw.rect(
+                tela, (235, 110, 58),
+                (x + 13, y + 7, 30, 23), border_radius=4
+            )
+
+            cor_sensor = (255, 70, 45) if self.correndo else (255, 210, 70)
+            pygame.draw.circle(tela, cor_sensor, (x + 22, y + 17), 4)
+            pygame.draw.circle(tela, cor_sensor, (x + 35, y + 17), 4)
+
+            # Núcleo de energia
+            pygame.draw.circle(tela, (70, 36, 30), (x + 28, y + 39), 9)
+            pygame.draw.circle(tela, (255, 165, 60), (x + 28, y + 39), 5)
+
+            if self.correndo:
+                pygame.draw.line(tela, (255, 230, 120), (x + 25, y + 35), (x + 31, y + 43), 2)
+                pygame.draw.line(tela, (255, 230, 120), (x + 31, y + 35), (x + 25, y + 43), 2)
+
+        self._desenhar_tiros(tela, camera_x, camera_y)
