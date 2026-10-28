@@ -266,7 +266,7 @@ class InimigoBlindado(Inimigo):
         self.alcance_ataque = 600
 
         # O blindado dispara mais devagar.
-        self.cooldown_tiro = 3000
+        self.cooldown_tiro = 4000
 
         # Carrega a spritesheet do tank boladissimo
         spritesheet = pygame.image.load(

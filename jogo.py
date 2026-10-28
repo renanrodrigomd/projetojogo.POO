@@ -339,18 +339,6 @@ def desenhar_cenario(
             (x, CHAO_Y - 75 - camera_y)
         )
 
-
-    # Linha do chão
-
-    pygame.draw.line(
-        tela,
-        (75, 85, 95),
-        (0, CHAO_Y - camera_y),
-        (LARGURA, CHAO_Y - camera_y),
-        3
-    )
-
-
 def tela_derrota(tela):
 
     imagem = pygame.image.load(

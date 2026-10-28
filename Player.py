@@ -42,7 +42,7 @@ class Player(Personagem):
         self.frames_pulando = {
             "d": self._carregar_frames(
                 "player",
-                "jogadorpulandodireita.png"
+                ""
             ),
             "a": self._carregar_frames(
                 "player",
