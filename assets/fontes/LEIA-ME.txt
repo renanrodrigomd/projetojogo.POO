@@ -1,0 +1,4 @@
+Coloque aqui uma fonte própria como "principal.ttf" (ou principal.otf)
+e o jogo passa a usá-la em todo o texto. Sugestões gratuitas (licença OFL):
+Orbitron, Rajdhani, Exo 2, Share Tech Mono. Sem o arquivo, o jogo usa
+Bahnschrift/Segoe UI/Arial, o que estiver instalado.

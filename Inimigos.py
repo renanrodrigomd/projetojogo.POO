@@ -5,6 +5,9 @@ from tiros import Tiro, Missil
 
 
 class Inimigo:
+    NOME = "Robô"
+    DICA = "Fique em movimento e atire primeiro."
+
     def __init__(self, x, y, chao_y=610, largura_mapa=10000):
         self.posx = float(x)
         self.posy = float(y)
@@ -15,6 +18,8 @@ class Inimigo:
         self.largura_mapa = largura_mapa
 
         self.vivo = True
+        self._vida = 0
+        self._vida_max = 0
         self.vida = 2
         self.velocidade = 3
         self.alcance_ataque = 500
@@ -23,6 +28,24 @@ class Inimigo:
 
         self.angulo_olhar = 0
         self.tiros = []
+
+    @property
+    def vida(self):
+        return self._vida
+
+    @vida.setter
+    def vida(self, valor):
+        # Nunca fica negativa; a primeira vez que a vida é definida
+        # (ou aumentada) vira a vida máxima usada nas barras do HUD.
+        self._vida = max(0, valor)
+        self._vida_max = max(self._vida_max, self._vida)
+
+        if self._vida == 0:
+            self.vivo = False
+
+    @property
+    def vida_max(self):
+        return self._vida_max
 
     def get_rect(self):
         return pygame.Rect(
@@ -114,6 +137,9 @@ class Inimigo:
 
 
 class InimigoTerrestre(Inimigo):
+    NOME = "Robô Terrestre"
+    DICA = "Robôs terrestres atiram de longe: pule os disparos e avance."
+
     def __init__(self, x, y, chao_y=610, largura_mapa=10000):
         super().__init__(x, y, chao_y, largura_mapa)
 
@@ -178,6 +204,9 @@ class InimigoTerrestre(Inimigo):
 
 
 class InimigoAereo(Inimigo):
+    NOME = "Drone Aéreo"
+    DICA = "Drones atacam de cima: segure W ou ↑ para atirar para cima."
+
     def __init__(self, x, y, chao_y=610, largura_mapa=10000):
         super().__init__(x, y, chao_y, largura_mapa)
 
@@ -263,6 +292,9 @@ class InimigoAereo(Inimigo):
 
 
 class InimigoBlindado(Inimigo):
+    NOME = "Robô Blindado"
+    DICA = "O blindado aguenta 8 tiros: recue e atire de longe."
+
     def __init__(self, x, y, chao_y=610, largura_mapa=10000):
         super().__init__(x, y, chao_y, largura_mapa)
 
@@ -371,18 +403,13 @@ class InimigoBlindado(Inimigo):
                 (x + 20, y + 36), (x + 91, y + 36), 3
             )
 
-            barra_largura = 90
-            vida_atual = max(0, min(self.vida, 8))
-            pygame.draw.rect(tela, (55, 55, 55), (x + 10, y - 9, barra_largura, 5))
-            pygame.draw.rect(
-                tela, (235, 75, 65),
-                (x + 10, y - 9, barra_largura * vida_atual / 8, 5)
-            )
-
         self._desenhar_tiros(tela, camera_x, camera_y)
 
 
 class InimigoExplosivo(Inimigo):
+    NOME = "Robô Explosivo"
+    DICA = "O explosivo corre quando atingido: derrube-o à distância."
+
     def __init__(self, x, y, chao_y=610, largura_mapa=10000):
         super().__init__(x, y, chao_y, largura_mapa)
 

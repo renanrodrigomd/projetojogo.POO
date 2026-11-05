@@ -1,0 +1,3 @@
+retrato_gepeto.png  ->  retrato do Gepeto no HUD (qualquer tamanho, é
+reduzido para 62x62). Se o arquivo não existir, o HUD mostra um
+espaço reservado com a letra G.

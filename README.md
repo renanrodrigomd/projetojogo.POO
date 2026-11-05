@@ -212,4 +212,40 @@ Versão atual:
 **Nome:** Romero Merito: não foi implementado ainda.
 
 O chefe final representa o ápice do sistema robótico e será o maior desafio do jogo, exigindo habilidade e estratégia do jogador.
- 
+
+---
+
+## 13. Comparação entre o projeto original e a Etapa 2
+
+Esta seção registra as diferenças entre o projeto original (`projetojogo.POO-main`) e a proposta de alterações (`smachtech_etapa2`). A Etapa 2 deve ser integrada gradualmente, mantendo uma cópia funcional do original.
+
+| Área | Projeto original | Etapa 2 / alteração sugerida | Cuidado na integração |
+|---|---|---|---|
+| Fluxo principal | `jogo.py` concentra a execução do jogo; `Main.py` inicia o projeto. | Adiciona `gerenciador.py` e arquivos em `telas/` para separar menu, jogo, pausa e fim de jogo. | Não trocar apenas o arquivo de entrada: o gerenciador depende das telas e de suas interfaces. |
+| Interface | Elementos de interface ficam ligados ao fluxo existente. | Adiciona o pacote `ui/` com módulos para HUD, botões, fontes, imagens, efeitos e fundo animado. | Verificar chamadas, nomes de métodos e carregamento dos recursos antes de remover a interface antiga. |
+| Cenário | `Mapa.py` e `camera.py` participam da construção e movimentação do cenário. | Adiciona `cenario.py` e `config.py`. | Conferir limites do mapa, posição do chão e compatibilidade da câmera com o jogador. |
+| Fases e recordes | Não há módulos separados com esses nomes no original. | Adiciona `fases.py` e `recordes.py`. | Confirmar como a fase termina, como a pontuação é calculada e como os dados são salvos. |
+| Personagem, inimigos e combate | Já existem `Player.py`, `Personagem.py`, `Inimigos.py`, `tiros.py`, `boss.py` e `spawn.py`. | Esses módulos também aparecem na Etapa 2. | Comparar as implementações antes de substituir: preservar movimento, colisões, dano, tiros, inimigos, chefe e surgimento de inimigos que já funcionam. |
+| Recursos e arquivos | Contém imagens e outros recursos usados pelo jogo. | Reorganiza/expande pastas de recursos, incluindo `assets/ui/` e `assets/fontes/`. | Conferir caminhos e nomes exatos dos arquivos; diferenças de acentuação ou maiúsculas/minúsculas podem impedir o carregamento. |
+
+### Ordem recomendada para integrar as mudanças
+
+1. Guardar uma cópia do original e testar que ele inicia.
+2. Comparar os arquivos de personagem, inimigos, tiros, chefe, câmera e mapa; integrar apenas diferenças necessárias.
+3. Integrar os módulos de interface e testar cada tela separadamente.
+4. Conectar o gerenciador ao fluxo principal, sem apagar o ponto de entrada antigo até confirmar que o novo funciona.
+5. Integrar fases e recordes e testar vitória, derrota, pausa e reinício.
+6. Executar o jogo completo e verificar controles, colisões, HUD, recursos visuais e caminhos dos arquivos.
+
+### Registro de validação
+
+As diferenças de estrutura e os novos módulos podem ser identificados nos arquivos da Etapa 2. A presença de um arquivo, por si só, não comprova que a funcionalidade está concluída ou integrada corretamente. Marcar cada etapa como concluída somente depois de executar e testar o jogo.
+
+| Verificação | Estado |
+|---|---|
+| Projeto original inicia sem erros | A testar |
+| Personagem, tiros e inimigos continuam funcionando após a integração | A testar |
+| Menu, pausa, vitória e derrota funcionam | A testar |
+| Fases e recordes funcionam e mantêm os dados esperados | A testar |
+| Caminhos de imagens e fontes funcionam | A testar |
+| Jogo completo testado do início ao fim | A testar |

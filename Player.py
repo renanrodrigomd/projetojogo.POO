@@ -22,7 +22,8 @@ class Player(Personagem):
         self.no_chao = False
         self.chao_y = chao_y
 
-        self.vida = 3
+        self._vida_max = 3
+        self._vida = self._vida_max
         self.invulneravel = False
         self.tempo_invulnerabilidade = 0
         self.duracao_invulnerabilidade = 1000
@@ -35,11 +36,26 @@ class Player(Personagem):
         self.velocidade_animacao = 100
         self.frame_atual = 0
 
+    @property
+    def vida(self):
+        return self._vida
+
+    @property
+    def vida_max(self):
+        return self._vida_max
+
+    @property
+    def esta_vivo(self):
+        return self._vida > 0
+
+    def curar(self, quantidade=1):
+        self._vida = min(self._vida_max, self._vida + quantidade)
+
     def receber_dano(self):
         if self.invulneravel:
             return
 
-        self.vida -= 1
+        self._vida = max(0, self._vida - 1)
         self.invulneravel = True
         self.tempo_invulnerabilidade = pygame.time.get_ticks()
 
