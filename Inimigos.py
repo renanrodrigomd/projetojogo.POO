@@ -103,15 +103,24 @@ class Inimigo:
         self.tiros.append(Tiro(x, y, dx, dy))
 
     def receber_dano(self):
-        if not self.vivo:
-            return
-
         self.vida -= 1
 
         if self.vida <= 0:
             self.vivo = False
+            self.limpar_tiros()
+
+    def limpar_tiros(self):
+    
+        for tiro in self.tiros:
+            tiro.ativo = False
+
+        self.tiros.clear()
 
     def atualizar_tiros(self):
+        if not self.vivo:
+            self.limpar_tiros()
+            return
+
         for tiro in self.tiros[:]:
             tiro.atualizar()
 
@@ -122,8 +131,12 @@ class Inimigo:
         self.atualizar_tiros()
 
     def _desenhar_tiros(self, tela, camera_x, camera_y):
+        if not self.vivo:
+            return
+
         for tiro in self.tiros:
-            tiro.desenhar(tela, camera_x, camera_y)
+            if tiro.ativo:
+                tiro.desenhar(tela, camera_x, camera_y)
 
     def desenhar(self, tela, camera_x=0, camera_y=0):
         if self.vivo:
@@ -463,6 +476,7 @@ class InimigoExplosivo(Inimigo):
 
         if self.vida <= 0:
             self.vivo = False
+            self.limpar_tiros()
             self.explodiu = True
 
     def desenhar(self, tela, camera_x=0, camera_y=0):
