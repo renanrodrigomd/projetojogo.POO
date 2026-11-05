@@ -715,14 +715,20 @@ def iniciar_jogo():
 
         for inimigo in inimigos:
 
+            # Inimigos mortos não podem causar dano.
+            if not inimigo.vivo:
+                inimigo.limpar_tiros()
+                continue
+
             for tiro in inimigo.tiros[:]:
 
-                if tiro.get_rect().colliderect(
-                    jogador.get_rect()
-                ):
+                if not tiro.ativo:
+                    continue
+
+                if tiro.get_rect().colliderect(jogador.get_rect()):
 
                     tiro.ativo = False
-
+ 
                     jogador.receber_dano()
 
         # Derrota
