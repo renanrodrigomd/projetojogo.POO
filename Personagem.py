@@ -43,7 +43,7 @@ class Personagem:
         tiro = TiroPlayer(x, y, dx, dy)
         self.tiros.append(tiro)
 
-        self.tiros.append(tiro)
+        
 
     def atualizar_tiros(self):
         for tiro in self.tiros[:]:

@@ -39,7 +39,7 @@ def carregar_cartucho():
         imagem = imagem.subsurface(area).copy()
 
         # Redimensiona e preserva o fundo transparente.
-        imagem = pygame.transform.scale(imagem, (30, 12))
+        imagem = pygame.transform.scale(imagem, (22, 8))
         imagem.set_colorkey((0, 0, 0))
 
         _sprite_cartucho = imagem
@@ -74,32 +74,7 @@ class Tiro:
 
         self.sprite = None 
 
-        if asset is not None:
-            try:
-
-                caminho = asset("player", "cartucho.png")
-                imagem = pygame.image.load(caminho).convert_alpha()
-
-                largura, altura = imagem.get_size()
-
-                for x in range(largura):
-                    for y in range(altura):
-                        r, g, b, a = imagem.get_at((x, y))
-
-                        if r <= 12 and g <= 12 and b <= 12:
-                            imagem.set_at((x, y), (0, 0, 0, 0))
-
-                # Recorta as bordas transparentes.
-                area = imagem.get_bounding_rect()
-
-                imagem = imagem.subsurface(area).copy()
-
-                self.sprite = pygame.transform.scale(
-                    imagem, (20,8)
-                )
-
-            except (FileNotFoundError, pygame.error, OSError):
-                self.sprite = None
+        
 
     def atualizar(self):
         if not self.ativo:
@@ -177,6 +152,7 @@ class TiroPlayer(Tiro):
 
     def __init__(self, x, y, dx, dy):
         super().__init__(x, y, dx, dy)
+
 
         self.sprite = carregar_cartucho()
 
