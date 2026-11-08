@@ -6,6 +6,50 @@ except ImportError:
 import math
 import pygame
 
+_sprite_cartucho = None
+_cartucho_carregado = False
+
+
+def carregar_cartucho():
+    global _sprite_cartucho, _cartucho_carregado
+
+    if _cartucho_carregado:
+        return _sprite_cartucho
+
+    _cartucho_carregado = True
+
+    if asset is None:
+        return None
+
+    try:
+        caminho = asset("player", "cartucho.png")
+        imagem = pygame.image.load(caminho).convert()
+
+        # Remove o preto sem percorrer pixel por pixel.
+        imagem.set_colorkey((0, 0, 0))
+
+        # Recorta a imagem usando operações nativas do Pygame.
+        mascara = pygame.mask.from_surface(imagem)
+        areas = mascara.get_bounding_rects()
+
+        if not areas:
+            return None
+
+        area = areas[0].unionall(areas[1:])
+        imagem = imagem.subsurface(area).copy()
+
+        # Redimensiona e preserva o fundo transparente.
+        imagem = pygame.transform.scale(imagem, (30, 12))
+        imagem.set_colorkey((0, 0, 0))
+
+        _sprite_cartucho = imagem
+
+    except (FileNotFoundError, pygame.error, OSError):
+        _sprite_cartucho = None
+
+    return _sprite_cartucho
+
+
 
 
 class Tiro:
@@ -129,6 +173,41 @@ class Tiro:
         pygame.draw.circle(tela, (255, 230, 130), (x, y), tamanho)
         pygame.draw.circle(tela, (255, 255, 235), (x, y), max(1, tamanho // 2))
 
+class TiroPlayer(Tiro):
+
+    def __init__(self, x, y, dx, dy):
+        super().__init__(x, y, dx, dy)
+
+        self.sprite = carregar_cartucho()
+
+        # Calcula a rotação apenas uma vez por projétil.
+        if self.sprite is not None:
+            angulo = math.degrees(
+                math.atan2(self.dy, self.dx)
+            )
+
+            self.sprite_rotacionada = pygame.transform.rotate(
+                self.sprite, -angulo
+            )
+        else:
+            self.sprite_rotacionada = None
+
+    def desenhar(self, tela, camera_x=0, camera_y=0):
+        if not self.ativo:
+            return
+
+        if self.sprite_rotacionada is None:
+            super().desenhar(tela, camera_x, camera_y)
+            return
+
+        x = round(self.posx - camera_x)
+        y = round(self.posy - camera_y)
+
+        retangulo = self.sprite_rotacionada.get_rect(
+            center=(x, y)
+        )
+
+        tela.blit(self.sprite_rotacionada, retangulo)
 
 class Missil(Tiro):
     def __init__(self, x, y, dx, dy):

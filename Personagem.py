@@ -1,5 +1,5 @@
 import pygame
-from tiros import Tiro
+from tiros import TiroPlayer
 
 
 class Personagem:
@@ -40,7 +40,8 @@ class Personagem:
         x = self.posx + self.largura // 2
         y = self.posy + self.altura // 2
 
-        tiro = Tiro(x, y, dx, dy)
+        tiro = TiroPlayer(x, y, dx, dy)
+        self.tiros.append(tiro)
 
         self.tiros.append(tiro)
 
