@@ -1,11 +1,11 @@
-
-import math
-import pygame
-
 try:
     from caminhos import asset
 except ImportError:
     asset = None
+
+import math
+import pygame
+
 
 
 class Tiro:
@@ -27,6 +27,35 @@ class Tiro:
         self.duracao_efeito = 120
         self.ativo = True
         self.rastro = []
+
+        self.sprite = None 
+
+        if asset is not None:
+            try:
+
+                caminho = asset("player", "cartucho.png")
+                imagem = pygame.image.load(caminho).convert_alpha()
+
+                largura, altura = imagem.get_size()
+
+                for x in range(largura):
+                    for y in range(altura):
+                        r, g, b, a = imagem.get_at((x, y))
+
+                        if r <= 12 and g <= 12 and b <= 12:
+                            imagem.set_at((x, y), (0, 0, 0, 0))
+
+                # Recorta as bordas transparentes.
+                area = imagem.get_bounding_rect()
+
+                imagem = imagem.subsurface(area).copy()
+
+                self.sprite = pygame.transform.scale(
+                    imagem, (20,8)
+                )
+
+            except (FileNotFoundError, pygame.error, OSError):
+                self.sprite = None
 
     def atualizar(self):
         if not self.ativo:
@@ -67,6 +96,16 @@ class Tiro:
 
         x = round(self.posx - camera_x)
         y = round(self.posy - camera_y)
+
+        if self.sprite is not None:
+            angulo = math.degrees(math.atan2(self.dy, self.dx))
+
+            imagem = pygame.transform.rotate(self.sprite, - angulo)
+
+            retangulo = imagem.get_rect(center=(x,y))
+
+            tela.blit(imagem, retangulo)
+            return
 
         # Rastro dos disparos.
         for i, ponto in enumerate(self.rastro):
