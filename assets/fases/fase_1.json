@@ -1,0 +1,36 @@
+{
+  "numero": 1,
+  "nome": "Rua Destruída",
+  "largura": 3600,
+  "final": 3300,
+  "tempo_tres_estrelas": 32,
+  "tempo_duas_estrelas": 48,
+  "destrocos": 0.8,
+  "inimigos": [
+    {"tipo": "terrestre", "x": 900},
+    {"tipo": "terrestre", "x": 1750},
+    {"tipo": "explosivo", "x": 2550}
+  ],
+  "plataformas": [
+    {"x": 800,  "y": 500, "largura": 180},
+    {"x": 2150, "y": 500, "largura": 160},
+    {"x": 2330, "y": 390, "largura": 160}
+  ],
+  "barreiras": [
+    {"x": 520,  "estilo": "caixa"},
+    {"x": 1500, "estilo": "carro"},
+    {"x": 3000, "estilo": "concreto"}
+  ],
+  "perigos": [
+    {"tipo": "poca",  "x": 1250, "largura": 140},
+    {"tipo": "pilar", "x": 2800}
+  ],
+  "checkpoints": [
+    {"x": 1950}
+  ],
+  "itens": [
+    {"tipo": "relogio", "x": 880,  "y": 500},
+    {"tipo": "escudo",  "x": 2410, "y": 390},
+    {"tipo": "vida",    "x": 2900}
+  ]
+}

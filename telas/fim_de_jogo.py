@@ -22,7 +22,7 @@ from telas.tela_base import Tela
 from ui.botoes import BotaoTexto, MenuBotoes
 from ui.fontes import texto
 from ui.fundo_animado import FundoAnimado
-from ui.imagens import titulo_pixel_art
+from ui.imagens import titulo_recortado
 
 
 def _formatar_tempo(segundos):
@@ -44,7 +44,7 @@ class TelaFinal(Tela):
         self._t = 0  # milissegundos desde que a tela abriu
 
         self._fundo = FundoAnimado(200)
-        self._titulo = titulo_pixel_art(self.IMAGEM, self.ALTURA_TITULO)
+        self._titulo = titulo_recortado(self.IMAGEM, self.ALTURA_TITULO)
 
         opcoes = self._opcoes()
         passo = 270
@@ -80,6 +80,13 @@ class TelaFinal(Tela):
         self.gerenciador.trocar(
             TelaJogo(self.gerenciador, indice, pontuacao_inicial), fade=True
         )
+
+    def _continuar(self, resumo):
+        from telas.tela_jogo import TelaJogo
+        self.gerenciador.trocar(TelaJogo(
+            self.gerenciador, resumo.indice_fase, resumo.pontuacao_inicial,
+            resumo.checkpoint
+        ), fade=True)
 
     def _ir_menu(self):
         from telas.menu import MenuPrincipal
@@ -167,12 +174,20 @@ class TelaDerrota(TelaFinal):
 
     def _opcoes(self):
         r = self._resumo
-        return [
-            ("TENTAR NOVAMENTE", lambda: self._jogar_fase(
-                r.indice_fase, r.pontuacao_inicial)),
-            ("MENU PRINCIPAL", self._ir_menu),
-            ("SAIR", self._sair),
-        ]
+        reiniciar = lambda: self._jogar_fase(
+            r.indice_fase, r.pontuacao_inicial)
+
+        if r.checkpoint is not None:
+            opcoes = [
+                ("CONTINUAR", lambda: self._continuar(r)),
+                ("REINICIAR FASE", reiniciar),
+            ]
+        else:
+            opcoes = [("TENTAR NOVAMENTE", reiniciar)]
+
+        opcoes.append(("MENU PRINCIPAL", self._ir_menu))
+        opcoes.append(("SAIR", self._sair))
+        return opcoes
 
     def _desenhar_corpo(self, superficie):
         r = self._resumo
@@ -207,6 +222,10 @@ class TelaDerrota(TelaFinal):
 
         # Dica
         alfa = self._alfa_linha(t, 600 + 5 * 140)
+        if alfa > 0 and r.checkpoint is not None:
+            texto(superficie, "CHECKPOINT ATIVO  •  +5s ao continuar", 13,
+                  COR_OK, (870, 502), direita=True, alfa=alfa)
+
         if alfa > 0:
             pygame.draw.line(superficie, COR_BORDA, (330, 488), (870, 488), 1)
             texto(superficie, "DICA", 13, COR_DESTAQUE, (330, 502), alfa=alfa)
@@ -230,8 +249,8 @@ class TelaDerrota(TelaFinal):
 
 class TelaVitoria(TelaFinal):
     IMAGEM = "Vitoria.png"
-    ALTURA_TITULO = 190
-    Y_TITULO = 14
+    ALTURA_TITULO = 200
+    Y_TITULO = 12
 
     DURACAO_CONTAGEM = 1200
     INICIO_CONTAGEM = 500

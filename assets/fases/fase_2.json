@@ -1,0 +1,47 @@
+{
+  "numero": 2,
+  "nome": "Ponte Central",
+  "largura": 4600,
+  "final": 4300,
+  "tempo_tres_estrelas": 45,
+  "tempo_duas_estrelas": 65,
+  "destrocos": 1.0,
+  "inimigos": [
+    {"tipo": "terrestre", "x": 1000},
+    {"tipo": "aereo",     "x": 1700, "altura": 220},
+    {"tipo": "explosivo", "x": 2700},
+    {"tipo": "blindado",  "x": 3500}
+  ],
+  "plataformas": [
+    {"x": 720,  "y": 500, "largura": 200},
+    {"x": 2080, "y": 500, "largura": 120},
+    {"x": 2250, "y": 500, "largura": 120},
+    {"x": 2400, "y": 500, "largura": 120}
+  ],
+  "barreiras": [
+    {"x": 450,  "estilo": "caixa"},
+    {"x": 1100, "estilo": "concreto", "altura": 100},
+    {"x": 3250, "estilo": "carro"},
+    {"x": 3900, "estilo": "concreto"},
+    {"x": 4100, "estilo": "caixa"}
+  ],
+  "perigos": [
+    {"tipo": "poca",  "x": 700,  "largura": 200},
+    {"tipo": "pilar", "x": 1350},
+    {"tipo": "pilar", "x": 1420, "deslocamento": 1600},
+    {"tipo": "poca",  "x": 2050, "largura": 420},
+    {"tipo": "pilar", "x": 2900},
+    {"tipo": "pilar", "x": 3800, "deslocamento": 800}
+  ],
+  "checkpoints": [
+    {"x": 1900},
+    {"x": 3050}
+  ],
+  "itens": [
+    {"tipo": "relogio", "x": 820,  "y": 500},
+    {"tipo": "vida",    "x": 1250},
+    {"tipo": "escudo",  "x": 2310, "y": 500},
+    {"tipo": "vida",    "x": 3150},
+    {"tipo": "relogio", "x": 4045}
+  ]
+}

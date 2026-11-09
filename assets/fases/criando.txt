@@ -1,0 +1,39 @@
+COMO CRIAR/EDITAR UMA FASE
+==========================
+Cada fase é um arquivo fase_N.json nesta pasta. O jogo lê todos os
+arquivos fase_*.json e os ordena pelo campo "numero". Para criar a fase 4,
+copie fase_3.json para fase_4.json e edite.
+
+Todas as posições x são em pixels a partir do início do mapa. O jogador
+começa em x=100. O chão fica em y=610. Posições "y" são da SUPERFÍCIE
+(onde se pisa).
+
+Campos principais
+  numero, nome, largura (tamanho do mapa), final (x do portal de saída)
+  tempo_tres_estrelas, tempo_duas_estrelas  (metas, em segundos)
+  destrocos   intensidade dos destroços caindo no fundo (0.5 a 2.0)
+
+inimigos     {"tipo": "terrestre|aereo|blindado|explosivo", "x": 900}
+             aereo aceita "altura" (padrão 220, quanto acima do chão)
+
+plataformas  {"x": 800, "y": 500, "largura": 180}
+             Atravessa por baixo, pisa por cima.
+             O pulo alcança ~140 px: use y=500 saindo do chão e
+             mais ~110 px para cima a cada degrau (ex.: 500 -> 390).
+
+barreiras    {"x": 520, "estilo": "caixa|carro|concreto"}
+             opcionais: "largura", "altura", "y" (para pôr sobre plataforma)
+             Bloqueia passos e tiros. Mantenha altura <= 100 para o
+             jogador conseguir pular por cima.
+
+perigos      {"tipo": "poca", "x": 1250, "largura": 140}
+             {"tipo": "pilar", "x": 2800, "deslocamento": 0}
+             O pilar liga e desliga; "deslocamento" (ms) desencontra os
+             ciclos de pilares vizinhos.
+
+checkpoints  {"x": 1950}   (continuar após morrer volta aqui, +5 s)
+
+itens        {"tipo": "vida|escudo|relogio", "x": 880, "y": 500}
+             "y" é a superfície onde o item está (padrão: chão)
+
+Se algo estiver errado, o jogo mostra o nome do arquivo e o que falta.

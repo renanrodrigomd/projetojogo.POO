@@ -8,6 +8,18 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
+class EstadoCheckpoint:
+    """Foto da partida no momento em que um checkpoint foi ativado."""
+    x: float
+    pontuacao: int
+    tempo: float
+    dano_sofrido: int
+    mortos: tuple          # índices dos inimigos já derrotados
+    itens: tuple           # índices dos itens já coletados
+    checkpoints: tuple     # índices dos checkpoints já ativados
+
+
+@dataclass(frozen=True)
 class ResumoPartida:
     indice_fase: int
     pontuacao_inicial: int
@@ -21,6 +33,7 @@ class ResumoPartida:
     dica: str
     estrelas: int = 0
     bonus: int = 0
+    checkpoint: EstadoCheckpoint = None
 
     @property
     def numero_fase(self):

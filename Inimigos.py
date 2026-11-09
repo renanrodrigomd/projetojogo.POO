@@ -6,6 +6,7 @@ from tiros import Tiro, Missil
 
 class Inimigo:
     NOME = "Robô"
+    VOA = False  # True para os que ignoram barreiras do chão
     DICA = "Fique em movimento e atire primeiro."
 
     def __init__(self, x, y, chao_y=610, largura_mapa=10000):
@@ -217,6 +218,7 @@ class InimigoTerrestre(Inimigo):
 
 
 class InimigoAereo(Inimigo):
+    VOA = True
     NOME = "Drone Aéreo"
     DICA = "Drones atacam de cima: segure W ou ↑ para atirar para cima."
 

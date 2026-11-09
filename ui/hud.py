@@ -47,13 +47,13 @@ class Hud:
         return None
 
     def desenhar(self, tela, jogador, inimigos, pontuacao, fase, tempo,
-                 camera_x):
+                 camera_x, checkpoints=()):
         vivos = sum(1 for inimigo in inimigos if inimigo.vivo)
 
         self._painel_jogador(tela, jogador)
         self._painel_tempo(tela, fase, tempo)
         self._painel_pontos(tela, pontuacao, vivos)
-        self._barra_progresso(tela, jogador, fase)
+        self._barra_progresso(tela, jogador, fase, checkpoints)
         self._objetivo(tela, jogador, fase, vivos, camera_x, tempo)
 
     # Blocos do HUD
@@ -74,6 +74,10 @@ class Hud:
 
         texto(tela, "GEPETO", 18, COR_TEXTO, (104, 24))
         texto(tela, "ENERGIA", 12, COR_TEXTO_SUAVE, (104, 68))
+
+        if jogador.escudo_ativo:
+            texto(tela, f"ESCUDO {jogador.escudo_restante:.1f}s", 14,
+                  COR_CIANO, (260, 26))
 
         # Vida em módulos de energia
         for i in range(jogador.vida_max):
@@ -112,7 +116,7 @@ class Hud:
         cor = COR_OK if vivos == 0 else COR_TEXTO
         texto(tela, str(vivos), 30, cor, (LARGURA - 130, 42))
 
-    def _barra_progresso(self, tela, jogador, fase):
+    def _barra_progresso(self, tela, jogador, fase, checkpoints):
         x, y, largura, altura = 18, 102, LARGURA - 36, 6
 
         progresso = max(0.0, min(1.0, jogador.posx / fase.final))
@@ -122,6 +126,14 @@ class Hud:
         pygame.draw.rect(tela, COR_CIANO,
                          (x, y, int(largura * progresso), altura),
                          border_radius=3)
+
+        # Checkpoints (verde = já ativado)
+        for cp_x, ativo in checkpoints:
+            marca_x = x + int(largura * min(1.0, cp_x / fase.final))
+            pygame.draw.rect(
+                tela, COR_OK if ativo else (95, 106, 128),
+                (marca_x - 1, y - 4, 3, 14)
+            )
 
         # Marcador do jogador e bandeira da saída
         marcador_x = x + int(largura * progresso)

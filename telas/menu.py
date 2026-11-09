@@ -1,7 +1,5 @@
 """Menu principal, Como jogar e Créditos."""
 
-import math
-
 import pygame
 
 from config import (
@@ -10,27 +8,28 @@ from config import (
 )
 from telas.tela_base import Tela
 from ui.botoes import BotaoTexto, MenuBotoes
-from ui.fontes import texto, texto_espacado, renderizar
+from ui.fontes import texto
 from ui.fundo_animado import FundoAnimado
+from ui.imagens import moldura_de_tela
 
 
 class MenuPrincipal(Tela):
+    """Menu com a moldura ilustrada (TelaFundo.png) por cima da cidade em
+    ruínas animada: as partes pretas da moldura deixam o fundo aparecer."""
 
     def __init__(self, gerenciador):
         super().__init__(gerenciador)
 
-        self._fundo = FundoAnimado(150)
-        self._tempo = 0.0
+        self._fundo = FundoAnimado(225, destrocos_acima_do_veu=True)
+        self._moldura = moldura_de_tela("TelaFundo.png")
 
-        # Camada de brilho do título (cópia com transparência variável)
-        self._brilho = renderizar("SMACHTECH", 96, COR_CIANO).copy()
-
+        # A moldura deixa livre a área central (y de ~230 a ~585).
         x = LARGURA // 2
         botoes = [
-            BotaoTexto("JOGAR", (x, 330), 320, 52),
-            BotaoTexto("COMO JOGAR", (x, 396), 320, 52),
-            BotaoTexto("CRÉDITOS", (x, 462), 320, 52),
-            BotaoTexto("SAIR", (x, 528), 320, 52),
+            BotaoTexto("JOGAR", (x, 292), 320, 52),
+            BotaoTexto("COMO JOGAR", (x, 358), 320, 52),
+            BotaoTexto("CRÉDITOS", (x, 424), 320, 52),
+            BotaoTexto("SAIR", (x, 490), 320, 52),
         ]
 
         self._menu = MenuBotoes(
@@ -59,38 +58,20 @@ class MenuPrincipal(Tela):
         self._menu.eventos(evento)
 
     def atualizar(self, dt):
-        self._tempo += dt / 1000
         self._fundo.atualizar(dt)
 
     def desenhar(self, superficie):
         self._fundo.desenhar(superficie)
 
-        pulso = 0.5 + 0.5 * math.sin(self._tempo * 2.2)
-
-        # Brilho pulsante atrás do título
-        self._brilho.set_alpha(int(40 + 70 * pulso))
-        for deslocamento in ((-3, 0), (3, 0), (0, -3), (0, 3)):
-            superficie.blit(
-                self._brilho,
-                self._brilho.get_rect(
-                    center=(LARGURA // 2 + deslocamento[0],
-                            150 + deslocamento[1])
-                )
-            )
-
-        texto(superficie, "SMACHTECH", 96, COR_CIANO, (LARGURA // 2, 150), True)
-        texto_espacado(superficie, "INVASION ROBOTICS", 24, COR_TEXTO,
-                       (LARGURA // 2, 218), espaco=10)
-
-        pygame.draw.line(superficie, COR_CIANO,
-                         (LARGURA // 2 - 190, 248), (LARGURA // 2 + 190, 248), 2)
+        # BLEND_ADD: o preto da moldura não soma nada, o resto brilha
+        superficie.blit(self._moldura, (0, 0), None, pygame.BLEND_ADD)
 
         self._menu.desenhar(superficie)
 
         texto(superficie, "↑ ↓  navegar    ENTER  selecionar", 14,
-              COR_TEXTO_SUAVE, (LARGURA // 2, ALTURA - 28), True)
-        texto(superficie, VERSAO, 14, COR_TEXTO_SUAVE,
-              (LARGURA - 20, ALTURA - 28), True)
+              COR_TEXTO_SUAVE, (LARGURA // 2, 552), True)
+        texto(superficie, VERSAO, 13, COR_TEXTO_SUAVE,
+              (LARGURA // 2, 570), True)
 
 
 class ComoJogar(Tela):

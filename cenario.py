@@ -35,7 +35,7 @@ class Cenario:
     def __init__(self):
         self._fundo, self._chao = carregar_imagens()
 
-    def desenhar(self, tela, camera_x, camera_y):
+    def desenhar_fundo(self, tela, camera_x, camera_y):
         largura_fundo = self._fundo.get_width()
         deslocamento = int(camera_x * self.FATOR_PARALAXE)
         inicio_x = -(deslocamento % largura_fundo) - largura_fundo
@@ -43,6 +43,7 @@ class Cenario:
         for x in range(inicio_x, LARGURA + largura_fundo, largura_fundo):
             tela.blit(self._fundo, (x, -camera_y))
 
+    def desenhar_chao(self, tela, camera_x, camera_y):
         # Parte inferior (abaixo do chão)
         pygame.draw.rect(
             tela, (22, 25, 31),
@@ -56,6 +57,10 @@ class Cenario:
         for x in range(inicio_x - largura_chao,
                        LARGURA + largura_chao, largura_chao):
             tela.blit(self._chao, (x, CHAO_Y - 75 - camera_y))
+
+    def desenhar(self, tela, camera_x, camera_y):
+        self.desenhar_fundo(tela, camera_x, camera_y)
+        self.desenhar_chao(tela, camera_x, camera_y)
 
     def desenhar_saida(self, tela, camera_x, final, liberada):
         """Portal de saída. Fica azul quando a área está limpa e

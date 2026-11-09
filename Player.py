@@ -27,6 +27,7 @@ class Player(Personagem):
         self.invulneravel = False
         self.tempo_invulnerabilidade = 0
         self.duracao_invulnerabilidade = 1000
+        self._escudo_restante = 0  # ms (conta só enquanto a partida roda)
 
         self.cooldown_tiro = 500
         self.largura_mapa = largura_mapa
@@ -48,11 +49,30 @@ class Player(Personagem):
     def esta_vivo(self):
         return self._vida > 0
 
+    @property
+    def escudo_ativo(self):
+        return self._escudo_restante > 0
+
+    @property
+    def escudo_restante(self):
+        """Segundos de escudo que ainda restam."""
+        return self._escudo_restante / 1000
+
+    def ativar_escudo(self, duracao_ms):
+        self._escudo_restante = max(self._escudo_restante, duracao_ms)
+
+    def atualizar_escudo(self, dt):
+        self._escudo_restante = max(0, self._escudo_restante - dt)
+
+    def restaurar_vida(self):
+        self._vida = self._vida_max
+        self.invulneravel = False
+
     def curar(self, quantidade=1):
         self._vida = min(self._vida_max, self._vida + quantidade)
 
     def receber_dano(self):
-        if self.invulneravel:
+        if self.invulneravel or self.escudo_ativo:
             return
 
         self._vida = max(0, self._vida - 1)
