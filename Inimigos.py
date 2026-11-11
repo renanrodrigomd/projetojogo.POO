@@ -1,15 +1,16 @@
 
 import math
 import pygame
-from tiros import Tiro, Missil
-from mecanicas.explosao import Bomba
+from tiros import Tiro, Missil, MissilTerrestre, TiroDrone
+from sprites_inimigos import quadros, quadros_espelhados
 
 
 class Inimigo:
     NOME = "Robô"
     VOA = False  # True para os que ignoram barreiras do chão
-    EXPLODE_AO_TOCAR = False  # True: detona em vez de causar dano de contato
     DICA = "Fique em movimento e atire primeiro."
+    CLASSE_TIRO = Tiro  # cada inimigo pode usar seu próprio projétil
+    SPRITE_CENTRALIZADO = False  # True: sprite centrado na hitbox (voadores)
 
     def __init__(self, x, y, chao_y=610, largura_mapa=10000):
         self.posx = float(x)
@@ -31,23 +32,13 @@ class Inimigo:
 
         self.angulo_olhar = 0
         self.tiros = []
-        self.bombas = []
 
-    @property
-    def explosao_pendente(self):
-        """True quando o robô acabou de explodir e a partida ainda precisa
-        criar a explosão. Só o Explosivo sobrescreve."""
-        return False
-
-    def marcar_explosao_tratada(self):
-        pass
-
-    def receber_tiro(self, tiro):
-        """Chamado quando um tiro do jogador acerta este robô.
-        Devolve True se o dano valeu, False se o tiro foi bloqueado.
-        Cada tipo de robô pode reagir de um jeito (POLIMORFISMO)."""
-        self.receber_dano()
-        return True
+        # Sprites: viram para o jogador e animam quando se movem.
+        self.virado_esquerda = True
+        self.frame_sprite = 0
+        self._tempo_frame_sprite = 0
+        self._x_anterior = self.posx
+        self._movendo = False
 
     @property
     def vida(self):
@@ -81,6 +72,9 @@ class Inimigo:
 
         dx = player_x - centro_x
         dy = player_y - centro_y
+
+        if dx != 0:
+            self.virado_esquerda = dx < 0
 
         if dx != 0 or dy != 0:
             angulo = math.degrees(math.atan2(dy, dx))
@@ -117,10 +111,13 @@ class Inimigo:
         dx = math.cos(radianos)
         dy = math.sin(radianos)
 
-        x = self.posx + self.largura / 2
-        y = self.posy + self.altura / 2
+        x, y = self.origem_tiro()
 
-        self.tiros.append(Tiro(x, y, dx, dy))
+        self.tiros.append(self.CLASSE_TIRO(x, y, dx, dy))
+
+    def origem_tiro(self):
+        """De onde o projétil sai (por padrão, o centro do inimigo)."""
+        return self.posx + self.largura / 2, self.posy + self.altura / 2
 
     def receber_dano(self):
         self.vida -= 1
@@ -135,7 +132,6 @@ class Inimigo:
             tiro.ativo = False
 
         self.tiros.clear()
-        self.bombas.clear()
 
     def atualizar_tiros(self):
         if not self.vivo:
@@ -149,10 +145,32 @@ class Inimigo:
                 self.tiros.remove(tiro)
 
     def atualizar(self):
+        self._acompanhar_movimento()
         self.atualizar_tiros()
 
-        for bomba in self.bombas:
-            bomba.atualizar()
+    def _acompanhar_movimento(self):
+        """Descobre se andou desde a última atualização (para animar)."""
+        self._movendo = abs(self.posx - self._x_anterior) > 0.01
+        self._x_anterior = self.posx
+
+    def _avancar_frame(self, total, intervalo_ms):
+        agora = pygame.time.get_ticks()
+
+        if agora - self._tempo_frame_sprite >= intervalo_ms:
+            self.frame_sprite = (self.frame_sprite + 1) % max(1, total)
+            self._tempo_frame_sprite = agora
+
+    def _blit_sprite(self, tela, sprite, x, y, centralizar_y=False):
+        """Desenha o sprite centrado na hitbox (x, y = canto na tela).
+        Por padrão os pés ficam na base da hitbox."""
+        px = x + self.largura // 2 - sprite.get_width() // 2
+
+        if centralizar_y:
+            py = y + self.altura // 2 - sprite.get_height() // 2
+        else:
+            py = y + self.altura - sprite.get_height()
+
+        tela.blit(sprite, (px, py))
 
     def _desenhar_tiros(self, tela, camera_x, camera_y):
         if not self.vivo:
@@ -162,10 +180,26 @@ class Inimigo:
             if tiro.ativo:
                 tiro.desenhar(tela, camera_x, camera_y)
 
-        for bomba in self.bombas:
-            bomba.desenhar(tela, camera_x, camera_y)
+    def _sprite_atual(self):
+        """Quadro a desenhar agora, ou None para usar o desenho por formas."""
+        return None
 
     def desenhar(self, tela, camera_x=0, camera_y=0):
+        sprite = self._sprite_atual() if self.vivo else None
+
+        if sprite is None:
+            self._desenhar_formas(tela, camera_x, camera_y)
+            return
+
+        x = round(self.posx - camera_x)
+        y = round(self.posy - camera_y)
+
+        self._blit_sprite(
+            tela, sprite, x, y, centralizar_y=self.SPRITE_CENTRALIZADO
+        )
+        self._desenhar_tiros(tela, camera_x, camera_y)
+
+    def _desenhar_formas(self, tela, camera_x=0, camera_y=0):
         if self.vivo:
             ret = self.get_rect()
             ret.move_ip(-camera_x, -camera_y)
@@ -179,18 +213,44 @@ class Inimigo:
 class InimigoTerrestre(Inimigo):
     NOME = "Robô Terrestre"
     DICA = "Robôs terrestres atiram de longe: pule os disparos e avance."
+    CLASSE_TIRO = MissilTerrestre
+    ALTURA_SPRITE = 92
 
     def __init__(self, x, y, chao_y=610, largura_mapa=10000):
         super().__init__(x, y, chao_y, largura_mapa)
 
-        self.largura = 56
-        self.altura = 70
+        self.largura = 60
+        self.altura = 80
         self.vida = 2
         self.velocidade = 3
         self.alcance_ataque = 420
         self.cooldown_tiro = 1800
 
         self.posy = self.chao_y - self.altura
+
+    def atualizar(self):
+        super().atualizar()
+
+        if self._movendo:
+            self._avancar_frame(12, 80)
+
+    def _sprite_atual(self):
+        lado = "esq" if self.virado_esquerda else "dir"
+        tipo = "andando" if self._movendo else "parado"
+        lista = quadros(f"terrestre_{tipo}_{lado}", altura=self.ALTURA_SPRITE)
+
+        if not lista:
+            return None
+
+        return lista[self.frame_sprite % len(lista)]
+
+    def origem_tiro(self):
+        # O míssil sai da boca do lançador, no alto do robô.
+        sinal = -1 if self.virado_esquerda else 1
+        return (
+            self.posx + self.largura / 2 + sinal * self.ALTURA_SPRITE * 0.42,
+            self.posy + self.altura - self.ALTURA_SPRITE * 0.8,
+        )
 
     def mover(self, player_x, player_y):
         if not self.vivo:
@@ -209,7 +269,7 @@ class InimigoTerrestre(Inimigo):
 
         self.posy = self.chao_y - self.altura
 
-    def desenhar(self, tela, camera_x=0, camera_y=0):
+    def _desenhar_formas(self, tela, camera_x=0, camera_y=0):
         if self.vivo:
             x = round(self.posx - camera_x)
             y = round(self.posy - camera_y)
@@ -247,12 +307,15 @@ class InimigoAereo(Inimigo):
     VOA = True
     NOME = "Drone Aéreo"
     DICA = "Drones atacam de cima: segure W ou ↑ para atirar para cima."
+    CLASSE_TIRO = TiroDrone
+    SPRITE_CENTRALIZADO = True
+    LARGURA_SPRITE = 100
 
     def __init__(self, x, y, chao_y=610, largura_mapa=10000):
         super().__init__(x, y, chao_y, largura_mapa)
 
-        self.largura = 70
-        self.altura = 50
+        self.largura = 76
+        self.altura = 48
         self.vida = 2
         self.velocidade = 2
         self.alcance_ataque = 500
@@ -262,6 +325,19 @@ class InimigoAereo(Inimigo):
         self.distancia_vertical = 120
         self.altura_minima = 40
         self.altura_maxima = chao_y - 100
+
+    def atualizar(self):
+        super().atualizar()
+        self._avancar_frame(8, 60)  # hélices sempre girando
+
+    def _sprite_atual(self):
+        nome = "drone_esq" if self.virado_esquerda else "drone_dir"
+        lista = quadros(nome, largura=self.LARGURA_SPRITE)
+
+        if not lista:
+            return None
+
+        return lista[self.frame_sprite % len(lista)]
 
     def mover(self, player_x, player_y):
         if not self.vivo:
@@ -291,7 +367,7 @@ class InimigoAereo(Inimigo):
             min(self.posy, self.altura_maxima)
         )
 
-    def desenhar(self, tela, camera_x=0, camera_y=0):
+    def _desenhar_formas(self, tela, camera_x=0, camera_y=0):
         if self.vivo:
             x = round(self.posx - camera_x)
             y = round(self.posy - camera_y)
@@ -335,12 +411,14 @@ class InimigoAereo(Inimigo):
 class InimigoBlindado(Inimigo):
     NOME = "Robô Blindado"
     DICA = "O blindado aguenta 8 tiros: recue e atire de longe."
+    CLASSE_TIRO = Missil
+    LARGURA_SPRITE = 124
 
     def __init__(self, x, y, chao_y=610, largura_mapa=10000):
         super().__init__(x, y, chao_y, largura_mapa)
 
-        self.largura = 110
-        self.altura = 75
+        self.largura = 120
+        self.altura = 56
         self.vida = 8
         self.velocidade = 1.2
         self.alcance_ataque = 600
@@ -377,30 +455,35 @@ class InimigoBlindado(Inimigo):
             self.tempo_ultimo_frame = agora
 
     def atualizar(self):
+        self._acompanhar_movimento()
         self.atualizar_animacao()
+
+        if self.andando:
+            self._avancar_frame(11, 90)  # esteiras rodando
+
         self.atualizar_tiros()
 
-    def atirar(self):
-        if not self.vivo:
-            return
+    def _sprite_atual(self):
+        # tank.png olha para a esquerda; para a direita usamos o espelho.
+        if self.virado_esquerda:
+            lista = quadros("blindado_esq", largura=self.LARGURA_SPRITE)
+        else:
+            lista = quadros_espelhados("blindado_esq", largura=self.LARGURA_SPRITE)
 
-        agora = pygame.time.get_ticks()
+        if not lista:
+            return None
 
-        if agora - self.ultimo_tiro < self.cooldown_tiro:
-            return
+        return lista[self.frame_sprite % len(lista)]
 
-        self.ultimo_tiro = agora
+    def origem_tiro(self):
+        # O míssil sai da ponta do canhão.
+        sinal = -1 if self.virado_esquerda else 1
+        return (
+            self.posx + self.largura / 2 + sinal * self.LARGURA_SPRITE * 0.45,
+            self.posy + self.altura - 40,
+        )
 
-        radianos = math.radians(self.angulo_olhar)
-        dx = math.cos(radianos)
-        dy = math.sin(radianos)
-
-        x = self.posx + self.largura / 2
-        y = self.posy + self.altura / 2
-
-        self.tiros.append(Missil(x, y, dx, dy))
-
-    def desenhar(self, tela, camera_x=0, camera_y=0):
+    def _desenhar_formas(self, tela, camera_x=0, camera_y=0):
         if self.vivo:
             x = round(self.posx - camera_x)
             y = round(self.posy - camera_y)
@@ -448,9 +531,9 @@ class InimigoBlindado(Inimigo):
 
 
 class InimigoExplosivo(Inimigo):
-    EXPLODE_AO_TOCAR = True
     NOME = "Robô Explosivo"
     DICA = "O explosivo corre quando atingido: derrube-o à distância."
+    ALTURA_SPRITE = 76
 
     def __init__(self, x, y, chao_y=610, largura_mapa=10000):
         super().__init__(x, y, chao_y, largura_mapa)
@@ -465,7 +548,6 @@ class InimigoExplosivo(Inimigo):
 
         self.correndo = False
         self.explodiu = False
-        self._explosao_tratada = False
         self.raio_explosao = 80
 
         self.posy = self.chao_y - self.altura
@@ -497,21 +579,23 @@ class InimigoExplosivo(Inimigo):
         # Este inimigo persegue o jogador em vez de disparar projéteis.
         return
 
-    @property
-    def explosao_pendente(self):
-        return self.explodiu and not self._explosao_tratada
+    def _sprite_atual(self):
+        # robo.png é pixel art: escala sem suavizar para manter os pixels.
+        lista = quadros("explosivo", altura=self.ALTURA_SPRITE, pixel_art=True)
+        return lista[0] if lista else None
 
-    def marcar_explosao_tratada(self):
-        self._explosao_tratada = True
+    def desenhar(self, tela, camera_x=0, camera_y=0):
+        # Aura pulsante quando começa a correr, por trás do sprite.
+        if self.vivo and self.correndo and self._sprite_atual() is not None:
+            x = round(self.posx - camera_x)
+            y = round(self.posy - camera_y)
+            pulso = int(pygame.time.get_ticks() / 70) % 8
+            pygame.draw.circle(
+                tela, (255, 80, 45),
+                (x + self.largura // 2, y + self.altura // 2), 36 + pulso, 3
+            )
 
-    def detonar(self):
-        """Autodestruição ao encostar no jogador."""
-        if not self.vivo:
-            return
-
-        self.vida = 0
-        self.explodiu = True
-        self.limpar_tiros()
+        super().desenhar(tela, camera_x, camera_y)
 
     def receber_dano(self):
         if not self.vivo:
@@ -525,7 +609,7 @@ class InimigoExplosivo(Inimigo):
             self.limpar_tiros()
             self.explodiu = True
 
-    def desenhar(self, tela, camera_x=0, camera_y=0):
+    def _desenhar_formas(self, tela, camera_x=0, camera_y=0):
         if self.vivo:
             x = round(self.posx - camera_x)
             y = round(self.posy - camera_y)
@@ -568,222 +652,5 @@ class InimigoExplosivo(Inimigo):
             if self.correndo:
                 pygame.draw.line(tela, (255, 230, 120), (x + 25, y + 35), (x + 31, y + 43), 2)
                 pygame.draw.line(tela, (255, 230, 120), (x + 31, y + 35), (x + 25, y + 43), 2)
-
-        self._desenhar_tiros(tela, camera_x, camera_y)
-
-
-class InimigoEscudeiro(Inimigo):
-    """Robô de chão com um escudo na frente.
-
-    O escudo bloqueia tiros que vêm de frente. Para derrotá-lo é preciso
-    pegá-lo pelas costas (o dash atravessa o robô!), atirar de cima ou
-    usar uma explosão. Ele demora um pouco para virar para o jogador.
-    """
-    NOME = "Robô Escudeiro"
-    DICA = "O escudo barra tiros de frente: use o dash para passar por ele e atire pelas costas."
-
-    TEMPO_VIRAR = 650   # ms até virar para o outro lado
-    TEMPO_FLASH = 140   # ms que o escudo brilha ao bloquear
-
-    def __init__(self, x, y, chao_y=610, largura_mapa=10000):
-        super().__init__(x, y, chao_y, largura_mapa)
-
-        self.largura = 60
-        self.altura = 72
-        self.vida = 3
-        self.velocidade = 1.6
-        self.alcance_ataque = 0
-
-        self._lado = 1            # +1: escudo voltado para a direita
-        self._orientado = False   # vira para o jogador no primeiro quadro
-        self._tempo_virar = 0
-        self._flash_ate = 0
-
-        self.posy = self.chao_y - self.altura
-
-    @property
-    def lado(self):
-        return self._lado
-
-    def mover(self, player_x, player_y):
-        if not self.vivo:
-            return
-
-        distancia = player_x - (self.posx + self.largura / 2)
-        lado_desejado = 1 if distancia > 0 else -1
-
-        if not self._orientado:
-            self._lado = lado_desejado
-            self._orientado = True
-
-        # Só vira depois de o jogador ficar do outro lado por um tempo
-        if lado_desejado != self._lado:
-            self._tempo_virar += 16
-            if self._tempo_virar >= self.TEMPO_VIRAR:
-                self._lado = lado_desejado
-                self._tempo_virar = 0
-        else:
-            self._tempo_virar = 0
-
-        self.posx += self._lado * self.velocidade
-        self.posx = max(0, min(self.posx, self.largura_mapa - self.largura))
-        self.posy = self.chao_y - self.altura
-
-    def atirar(self):
-        # Ataca só por contato.
-        return
-
-    def receber_tiro(self, tiro):
-        # O escudo barra tiros que se movem em direção à sua face.
-        if tiro.dx * self._lado < -0.3:
-            self._flash_ate = pygame.time.get_ticks() + self.TEMPO_FLASH
-            return False
-
-        self.receber_dano()
-        return True
-
-    def desenhar(self, tela, camera_x=0, camera_y=0):
-        if self.vivo:
-            x = round(self.posx - camera_x)
-            y = round(self.posy - camera_y)
-            lado = self._lado
-
-            # Pernas
-            pygame.draw.rect(tela, (52, 60, 72), (x + 10, y + 52, 15, 20))
-            pygame.draw.rect(tela, (52, 60, 72), (x + 35, y + 52, 15, 20))
-
-            # Corpo
-            pygame.draw.polygon(
-                tela, (78, 92, 112),
-                [(x + 8, y + 26), (x + 16, y + 12), (x + 44, y + 12),
-                 (x + 52, y + 28), (x + 48, y + 56), (x + 12, y + 56)]
-            )
-            pygame.draw.rect(tela, (112, 130, 152),
-                             (x + 16, y + 6, 28, 22), border_radius=4)
-
-            # Sensor voltado para o lado do escudo
-            sensor_x = x + (36 if lado > 0 else 24)
-            pygame.draw.circle(tela, (255, 190, 70), (sensor_x, y + 16), 4)
-
-            # Aviso de que está virando
-            if self._tempo_virar > 0:
-                pygame.draw.circle(tela, (255, 220, 90),
-                                   (x + self.largura // 2, y - 6), 4)
-
-            # Escudo (brilha ao bloquear um tiro)
-            brilhando = pygame.time.get_ticks() < self._flash_ate
-            cor_escudo = (235, 250, 255) if brilhando else (90, 205, 255)
-            placa_x = x + self.largura - 8 if lado > 0 else x - 4
-
-            pygame.draw.rect(tela, (22, 44, 62),
-                             (placa_x, y + 6, 12, 62), border_radius=5)
-            pygame.draw.rect(tela, cor_escudo,
-                             (placa_x, y + 6, 12, 62), 3, border_radius=5)
-
-            if brilhando:
-                pygame.draw.circle(
-                    tela, cor_escudo,
-                    (placa_x + (12 if lado > 0 else 0), y + 37), 18, 2
-                )
-
-        self._desenhar_tiros(tela, camera_x, camera_y)
-
-
-class InimigoBombardeiro(Inimigo):
-    """Drone que cruza o céu sobre o jogador soltando bombas."""
-    VOA = True
-    NOME = "Drone Bombardeiro"
-    DICA = "Bombardeiros soltam bombas ao passar por cima: saia de baixo ou derrube-os atirando para cima."
-
-    ULTRAPASSAGEM = 320   # quanto passa do jogador antes de dar a volta
-    JANELA_BOMBA = 30     # distância horizontal para soltar a bomba
-
-    def __init__(self, x, y, chao_y=610, largura_mapa=10000):
-        super().__init__(x, y, chao_y, largura_mapa)
-
-        self.largura = 78
-        self.altura = 40
-        self.vida = 2
-        self.velocidade = 2.6
-        self.alcance_ataque = 0
-        self.cooldown_bomba = 2300
-
-        self._direcao = 0
-        self._ultima_bomba = 0
-
-    def mover(self, player_x, player_y):
-        if not self.vivo:
-            return
-
-        centro_x = self.posx + self.largura / 2
-
-        if self._direcao == 0:
-            self._direcao = 1 if player_x >= centro_x else -1
-
-        # Dá a volta depois de passar do jogador
-        if self._direcao > 0 and centro_x > player_x + self.ULTRAPASSAGEM:
-            self._direcao = -1
-        elif self._direcao < 0 and centro_x < player_x - self.ULTRAPASSAGEM:
-            self._direcao = 1
-
-        self.posx += self._direcao * self.velocidade
-
-        # Bate na borda do mapa: inverte
-        limite = self.largura_mapa - self.largura
-        if self.posx <= 0 or self.posx >= limite:
-            self.posx = max(0, min(self.posx, limite))
-            self._direcao = -self._direcao
-
-        if abs(player_x - (self.posx + self.largura / 2)) <= self.JANELA_BOMBA:
-            self._soltar_bomba()
-
-    def atirar(self):
-        # Não atira: só solta bombas (dentro de mover).
-        return
-
-    def _soltar_bomba(self):
-        agora = pygame.time.get_ticks()
-
-        if agora - self._ultima_bomba < self.cooldown_bomba:
-            return
-
-        self._ultima_bomba = agora
-        self.bombas.append(Bomba(
-            self.posx + self.largura / 2, self.posy + self.altura, self
-        ))
-
-    def desenhar(self, tela, camera_x=0, camera_y=0):
-        if self.vivo:
-            x = round(self.posx - camera_x)
-            y = round(self.posy - camera_y)
-
-            # Asas
-            pygame.draw.polygon(
-                tela, (60, 52, 74),
-                [(x, y + 14), (x + 22, y + 6), (x + 22, y + 22)]
-            )
-            pygame.draw.polygon(
-                tela, (60, 52, 74),
-                [(x + self.largura, y + 14), (x + self.largura - 22, y + 6),
-                 (x + self.largura - 22, y + 22)]
-            )
-
-            # Corpo
-            corpo = pygame.Rect(x + 14, y + 4, self.largura - 28, 24)
-            pygame.draw.rect(tela, (92, 82, 112), corpo, border_radius=10)
-            pygame.draw.rect(tela, (150, 136, 176), corpo, 2, border_radius=10)
-
-            # Compartimento da bomba (acende quando está pronto para soltar)
-            pronta = (pygame.time.get_ticks() - self._ultima_bomba
-                      >= self.cooldown_bomba)
-            cor_baia = (255, 90, 60) if pronta else (70, 62, 84)
-            pygame.draw.rect(tela, cor_baia,
-                             (x + self.largura // 2 - 9, y + 26, 18, 10),
-                             border_radius=3)
-
-            # Luz de posição piscando
-            if (pygame.time.get_ticks() // 250) % 2 == 0:
-                pygame.draw.circle(tela, (255, 220, 90),
-                                   (x + self.largura // 2, y + 8), 3)
 
         self._desenhar_tiros(tela, camera_x, camera_y)

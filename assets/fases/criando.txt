@@ -13,12 +13,8 @@ Campos principais
   tempo_tres_estrelas, tempo_duas_estrelas  (metas, em segundos)
   destrocos   intensidade dos destroços caindo no fundo (0.5 a 2.0)
 
-inimigos     {"tipo": "terrestre|aereo|blindado|explosivo|escudeiro|bombardeiro", "x": 900}
-             aereo (padrão 220) e bombardeiro (padrão 260) aceitam "altura",
-             quanto acima do chão eles voam.
-             Explosivo: explode em área ao morrer ou ao encostar no jogador.
-             Escudeiro: escudo bloqueia tiros de frente.
-             Bombardeiro: voa sobre o jogador soltando bombas.
+inimigos     {"tipo": "terrestre|aereo|blindado|explosivo", "x": 900}
+             aereo aceita "altura" (padrão 220, quanto acima do chão)
 
 plataformas  {"x": 800, "y": 500, "largura": 180}
              Atravessa por baixo, pisa por cima.
@@ -37,8 +33,7 @@ perigos      {"tipo": "poca", "x": 1250, "largura": 140}
 
 checkpoints  {"x": 1950}   (continuar após morrer volta aqui, +5 s)
 
-itens        {"tipo": "vida|escudo|relogio|municao", "x": 880, "y": 500}
-             municao = +6 tiros da espingarda (máx. 12)
+itens        {"tipo": "vida|escudo|relogio", "x": 880, "y": 500}
              "y" é a superfície onde o item está (padrão: chão)
 
 Se algo estiver errado, o jogo mostra o nome do arquivo e o que falta.

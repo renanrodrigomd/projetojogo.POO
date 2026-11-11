@@ -342,10 +342,6 @@ class TelaVitoria(TelaFinal):
         detalhes = [
             ("TEMPO", f"{_formatar_tempo(r.tempo)}   (3 estrelas até "
                       f"{fase.tempo_tres_estrelas}s)", COR_TEXTO, 330, 458),
-            ("MAIOR COMBO",
-             f"{r.maior_combo} seguidos" if r.maior_combo >= 2 else "—",
-             COR_DESTAQUE if r.maior_combo >= 2 else COR_TEXTO_SUAVE,
-             700, 458),
             ("ROBÔS DERROTADOS", f"{r.derrotados}/{r.total_inimigos}",
              COR_TEXTO, 330, 508),
             ("DANO SOFRIDO", str(r.dano_sofrido),

@@ -3,6 +3,7 @@ try:
 except ImportError:
     asset = None
 
+import functools
 import math
 import pygame
 
@@ -50,6 +51,28 @@ def carregar_cartucho():
     return _sprite_cartucho
 
 
+
+
+@functools.lru_cache(maxsize=None)
+def carregar_sprite_tiro(arquivo, largura):
+    """Imagem de um projétil inimigo (assets/enemys/<arquivo>): recorta as
+    margens transparentes e escala para `largura` px mantendo a proporção.
+    Cacheada: carrega uma vez só, não a cada disparo. None se faltar."""
+    if asset is None:
+        return None
+
+    try:
+        imagem = pygame.image.load(asset("enemys", arquivo)).convert_alpha()
+        area = imagem.get_bounding_rect()
+
+        if area.width > 0 and area.height > 0:
+            imagem = imagem.subsurface(area).copy()
+
+        altura = max(1, round(imagem.get_height() * largura / imagem.get_width()))
+        return pygame.transform.smoothscale(imagem, (largura, altura))
+
+    except (FileNotFoundError, pygame.error, OSError):
+        return None
 
 
 class Tiro:
@@ -186,31 +209,18 @@ class TiroPlayer(Tiro):
         tela.blit(self.sprite_rotacionada, retangulo)
 
 class Missil(Tiro):
+    ARQUIVO = "Tiro.Tank.png"
+    LARGURA_SPRITE = 44
+
     def __init__(self, x, y, dx, dy):
         super().__init__(x, y, dx, dy)
 
         self.velocidade = 7
         self.tamanho = 12
         self.explodiu = False
-        self.sprite = None
 
         # A imagem é opcional. Sua ausência não impede o jogo de rodar.
-        if asset is not None:
-            try:
-                caminho = asset("enemys", "Tiro.Tank.png")
-                imagem = pygame.image.load(caminho).convert_alpha()
-
-                area = imagem.get_bounding_rect()
-
-                if area.width > 0 and area.height > 0:
-                    imagem = imagem.subsurface(area).copy()
-
-                self.sprite = pygame.transform.smoothscale(
-                    imagem, (42, 21)
-                )
-
-            except (FileNotFoundError, pygame.error, OSError):
-                self.sprite = None
+        self.sprite = carregar_sprite_tiro(self.ARQUIVO, self.LARGURA_SPRITE)
 
     def get_rect(self):
         return pygame.Rect(
@@ -231,7 +241,12 @@ class Missil(Tiro):
 
         if self.sprite is not None:
             imagem = pygame.transform.rotate(self.sprite, -angulo)
-            retangulo = imagem.get_rect(center=(x, y))
+            # A ponta fica na posição real do projétil (onde há colisão);
+            # o corpo e a chama ficam atrás dela.
+            recuo = self.sprite.get_width() * 0.3
+            retangulo = imagem.get_rect(
+                center=(round(x - self.dx * recuo), round(y - self.dy * recuo))
+            )
             tela.blit(imagem, retangulo)
             return
 
@@ -272,3 +287,45 @@ class Missil(Tiro):
             tela, (255, 100, 45),
             (cauda_x, cauda_y), 4
         )
+
+
+class MissilTerrestre(Missil):
+    """Míssil do robô terrestre (lançador de seis mísseis)."""
+    ARQUIVO = "Missilroboterrestre.png"
+    LARGURA_SPRITE = 58
+
+
+class TiroDrone(Tiro):
+    """Disparo de energia do drone aéreo."""
+    ARQUIVO = "Tiro.drone.png"
+    LARGURA_SPRITE = 56
+
+    def __init__(self, x, y, dx, dy):
+        super().__init__(x, y, dx, dy)
+
+        self.velocidade = 9
+        self.sprite = carregar_sprite_tiro(self.ARQUIVO, self.LARGURA_SPRITE)
+
+        # Gira uma vez só, não a cada quadro.
+        self._imagem = None
+        if self.sprite is not None:
+            angulo = math.degrees(math.atan2(self.dy, self.dx))
+            self._imagem = pygame.transform.rotate(self.sprite, -angulo)
+
+    def desenhar(self, tela, camera_x=0, camera_y=0):
+        if not self.ativo:
+            return
+
+        if self._imagem is None:
+            super().desenhar(tela, camera_x, camera_y)
+            return
+
+        x = round(self.posx - camera_x)
+        y = round(self.posy - camera_y)
+
+        # A "cabeça" brilhante fica na posição real; o rastro vai atrás.
+        recuo = self.sprite.get_width() * 0.35
+        retangulo = self._imagem.get_rect(
+            center=(round(x - self.dx * recuo), round(y - self.dy * recuo))
+        )
+        tela.blit(self._imagem, retangulo)

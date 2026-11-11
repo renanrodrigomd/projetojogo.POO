@@ -10,8 +10,6 @@ from config import LARGURA, ALTURA, CHAO_Y, COR_PERIGO, COR_DESTAQUE, \
     COR_OK, COR_CIANO
 from fases import FASES
 from Player import Player
-from mecanicas.combo import Combo
-from mecanicas.explosao import Explosao
 from mundo.destrocos import Destrocos
 from resumo import ResumoPartida, EstadoCheckpoint
 from telas.tela_base import Tela
@@ -24,11 +22,6 @@ class TelaJogo(Tela):
     DURACAO_IMPACTO = 180
     BONUS_SEM_DANO = 200
     PENALIDADE_CHECKPOINT = 5  # segundos somados ao continuar
-
-    # Hit stop: congelamento curtíssimo que dá peso aos impactos (ms)
-    HITSTOP_DANO = 90
-    HITSTOP_ABATE = 40
-    HITSTOP_EXPLOSAO = 70
 
     def __init__(self, gerenciador, indice_fase=0, pontuacao_inicial=0,
                  checkpoint=None):
@@ -59,11 +52,6 @@ class TelaJogo(Tela):
         self._textos = TextosFlutuantes()
         self._vinheta = Vinheta()
         self._tremor = Tremor()
-        self._explosoes = []
-
-        # Mecânicas
-        self._combo = Combo()
-        self._hitstop = 0
 
         # Estatísticas para as telas finais
         self._total_inimigos = len(self._inimigos)
@@ -117,39 +105,16 @@ class TelaJogo(Tela):
     # Eventos
 
     def eventos(self, evento):
-        jogador = self._jogador
-
-        if evento.type == pygame.KEYUP:
-            # Pulo variável: soltar a tecla corta a subida
-            if evento.key in (pygame.K_SPACE, pygame.K_w, pygame.K_UP):
-                jogador.cortar_pulo()
-            return
-
         if evento.type != pygame.KEYDOWN:
             return
 
         if evento.key == pygame.K_k:
-            jogador.atirar()
+            self._jogador.atirar()
 
         elif evento.key in (pygame.K_SPACE, pygame.K_w, pygame.K_UP):
-            if jogador.no_chao:
-                jogador.velocidade_y = jogador.forca_pulo
-                jogador.no_chao = False
-
-        elif evento.key in (pygame.K_LSHIFT, pygame.K_RSHIFT):
-            jogador.iniciar_dash()
-
-        elif evento.key == pygame.K_q:
-            jogador.trocar_arma(-1)
-
-        elif evento.key == pygame.K_e:
-            jogador.trocar_arma(1)
-
-        elif evento.key == pygame.K_1:
-            jogador.selecionar_arma(0)
-
-        elif evento.key == pygame.K_2:
-            jogador.selecionar_arma(1)
+            if self._jogador.no_chao:
+                self._jogador.velocidade_y = self._jogador.forca_pulo
+                self._jogador.no_chao = False
 
         elif evento.key in (pygame.K_ESCAPE, pygame.K_p):
             from telas.pausa import Pausa
@@ -157,23 +122,7 @@ class TelaJogo(Tela):
 
     # Lógica
 
-    def _atualizar_efeitos(self, dt):
-        self._textos.atualizar(dt)
-        self._vinheta.atualizar(dt)
-        self._tremor.atualizar(dt)
-
-        for explosao in self._explosoes:
-            explosao.atualizar(dt)
-
-        self._explosoes = [e for e in self._explosoes if not e.terminou]
-
     def atualizar(self, dt):
-        # Hit stop: o jogo congela por instantes, só os efeitos continuam
-        if self._hitstop > 0:
-            self._hitstop = max(0, self._hitstop - dt)
-            self._atualizar_efeitos(dt)
-            return
-
         self._tempo += dt / 1000
 
         jogador = self._jogador
@@ -182,21 +131,21 @@ class TelaJogo(Tela):
 
         jogador.mover()
         jogador.atualizar()
-        jogador.atualizar_timers(dt)
+        jogador.atualizar_escudo(dt)
         self._mundo.resolver_jogador(jogador, x_antes, y_antes)
         self._camera.atualizar_camera(jogador)
 
         self._mundo.atualizar(dt)
         self._destrocos.atualizar(dt)
-        self._combo.atualizar(dt)
 
         self._atualizar_inimigos()
         self._processar_mundo()
         self._tiros_do_jogador()
         self._tiros_dos_inimigos()
-        self._processar_bombas()
 
-        self._atualizar_efeitos(dt)
+        self._textos.atualizar(dt)
+        self._vinheta.atualizar(dt)
+        self._tremor.atualizar(dt)
 
         self._progresso_max = max(
             self._progresso_max, min(1.0, jogador.posx / self._fase.final)
@@ -238,7 +187,6 @@ class TelaJogo(Tela):
             estrelas=estrelas,
             bonus=bonus,
             checkpoint=self._checkpoint,
-            maior_combo=self._combo.maior_combo,
         )
 
     def _ferir_jogador(self, inimigo, motivo):
@@ -261,82 +209,8 @@ class TelaJogo(Tela):
         )
         self._vinheta.disparar()
         self._tremor.disparar(250, 7)
-        self._hitstop = max(self._hitstop, self.HITSTOP_DANO)
 
         return True
-
-    def _registrar_abate(self, inimigo, pontuar=True):
-        """Pontos, combo, textos e, se for o caso, a explosão do robô."""
-        self._derrotados += 1
-
-        x = inimigo.posx + inimigo.largura / 2
-        y = inimigo.posy - 20
-
-        if pontuar:
-            resultado = self._combo.registrar_abate()
-
-            self._pontuacao += resultado.pontos
-            self._tempo = max(0.0, self._tempo - resultado.tempo_removido)
-
-            mensagem = f"+{resultado.pontos}"
-            if resultado.multiplicador >= 2:
-                mensagem += f"  x{resultado.multiplicador}"
-
-            self._textos.adicionar(x, y, mensagem, COR_DESTAQUE)
-
-            if resultado.tempo_removido:
-                self._textos.adicionar(
-                    x, y - 28, f"-{int(resultado.tempo_removido)}s", COR_CIANO
-                )
-
-            self._hitstop = max(self._hitstop, self.HITSTOP_ABATE)
-
-        # Robôs que explodem ao morrer (POLIMORFISMO: só o Explosivo responde)
-        if inimigo.explosao_pendente:
-            inimigo.marcar_explosao_tratada()
-            self._detonar(Explosao(
-                inimigo.posx + inimigo.largura / 2,
-                inimigo.posy + inimigo.altura / 2,
-                inimigo.raio_explosao, inimigo
-            ))
-
-    def _detonar(self, explosao):
-        """Aplica o dano de uma explosão ao jogador e aos outros robôs.
-        Robôs derrubados por ela contam como abate (e podem explodir
-        também, gerando reação em cadeia)."""
-        self._explosoes.append(explosao)
-        self._tremor.disparar(320, 10)
-        self._hitstop = max(self._hitstop, self.HITSTOP_EXPLOSAO)
-
-        if explosao.dano_jogador and explosao.atinge(self._jogador.get_rect()):
-            self._ferir_jogador(explosao.origem, "Explosão de")
-
-        if not explosao.dano_inimigos:
-            return
-
-        for inimigo in self._inimigos:
-            if (inimigo.vivo and inimigo is not explosao.origem
-                    and explosao.atinge(inimigo.get_rect())):
-
-                for _ in range(explosao.dano_inimigos):
-                    if inimigo.vivo:
-                        inimigo.receber_dano()
-
-                if not inimigo.vivo:
-                    self._registrar_abate(inimigo)
-
-    def _processar_bombas(self):
-        jogador = self._jogador
-
-        for inimigo in self._inimigos:
-            for bomba in inimigo.bombas[:]:
-                area = bomba.get_rect()
-
-                if (bomba.posy >= CHAO_Y - 8
-                        or self._mundo.superficie_em(area)
-                        or area.colliderect(jogador.get_rect())):
-                    inimigo.bombas.remove(bomba)
-                    self._detonar(bomba.explodir())
 
     def _robos_vivos(self):
         return sum(1 for inimigo in self._inimigos if inimigo.vivo)
@@ -363,13 +237,6 @@ class TelaJogo(Tela):
 
             # Colisão física com o jogador
             if inimigo.get_rect().colliderect(jogador.get_rect()):
-                if inimigo.EXPLODE_AO_TOCAR:
-                    # O explosivo se detona (o dash atravessa sem dano
-                    # para o jogador, mas a explosão ainda acontece)
-                    inimigo.detonar()
-                    self._registrar_abate(inimigo, pontuar=False)
-                    continue
-
                 if self._ferir_jogador(inimigo, "Contato com"):
                     if inimigo.posx > jogador.posx:
                         jogador.posx -= 55
@@ -444,9 +311,6 @@ class TelaJogo(Tela):
                 )
                 continue
 
-            if not tiro.ativo:
-                continue
-
             for inimigo in self._inimigos:
                 if not inimigo.vivo:
                     continue
@@ -457,15 +321,17 @@ class TelaJogo(Tela):
                         [impacto[0], impacto[1], pygame.time.get_ticks()]
                     )
 
-                    # POLIMORFISMO: cada tipo de robô reage ao tiro do seu
-                    # jeito (o Escudeiro pode bloquear, o Explosivo corre...)
-                    if not inimigo.receber_tiro(tiro):
+                    # POLIMORFISMO: cada tipo de inimigo reage ao dano
+                    # do seu jeito (o Explosivo sai correndo, por ex.).
+                    inimigo.receber_dano()
+
+                    if not inimigo.vivo:
+                        self._pontuacao += 100
+                        self._derrotados += 1
                         self._textos.adicionar(
-                            impacto[0], impacto[1] - 20, "BLOQUEADO",
-                            COR_CIANO, 500
+                            inimigo.posx + inimigo.largura / 2,
+                            inimigo.posy - 20, "+100", COR_DESTAQUE
                         )
-                    elif not inimigo.vivo:
-                        self._registrar_abate(inimigo)
 
                     break
 
@@ -520,13 +386,8 @@ class TelaJogo(Tela):
                     inimigo.vida, inimigo.vida_max, (80, 220, 110)
                 )
 
-        self._desenhar_rastro_dash(superficie, cam_x, cam_y)
         self._jogador.desenhar(superficie, cam_x, cam_y)
         self._desenhar_escudo(superficie, cam_x, cam_y)
-
-        for explosao in self._explosoes:
-            explosao.desenhar(superficie, cam_x, cam_y)
-
         self._desenhar_impactos(superficie, cam_x, cam_y)
         self._textos.desenhar(superficie, cam_x, cam_y)
 
@@ -535,21 +396,8 @@ class TelaJogo(Tela):
         self._hud.desenhar(
             superficie, self._jogador, self._inimigos,
             self._pontuacao, self._fase, self._tempo, cam.x,
-            self._mundo.marcadores_checkpoint(), self._combo
+            self._mundo.marcadores_checkpoint()
         )
-
-    def _desenhar_rastro_dash(self, superficie, cam_x, cam_y):
-        jogador = self._jogador
-        rastro = jogador.rastro_dash
-
-        for i, (px, py) in enumerate(rastro):
-            contorno = pygame.Rect(
-                int(px - cam_x), int(py - cam_y),
-                jogador.largura, jogador.altura
-            )
-            pygame.draw.rect(superficie, COR_CIANO, contorno,
-                             1 + (i * 2) // max(1, len(rastro)),
-                             border_radius=6)
 
     def _desenhar_escudo(self, superficie, cam_x, cam_y):
         jogador = self._jogador
