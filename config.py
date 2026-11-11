@@ -6,7 +6,7 @@ mexa só neste arquivo.
 """
 
 TITULO = "SmachTech: Invasion Robotics"
-VERSAO = "v0.3"
+VERSAO = "v0.4"
 
 # Janela
 LARGURA = 1200

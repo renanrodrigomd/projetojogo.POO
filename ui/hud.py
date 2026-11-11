@@ -47,7 +47,7 @@ class Hud:
         return None
 
     def desenhar(self, tela, jogador, inimigos, pontuacao, fase, tempo,
-                 camera_x, checkpoints=()):
+                 camera_x, checkpoints=(), combo=None):
         vivos = sum(1 for inimigo in inimigos if inimigo.vivo)
 
         self._painel_jogador(tela, jogador)
@@ -55,8 +55,50 @@ class Hud:
         self._painel_pontos(tela, pontuacao, vivos)
         self._barra_progresso(tela, jogador, fase, checkpoints)
         self._objetivo(tela, jogador, fase, vivos, camera_x, tempo)
+        self._combo(tela, combo)
+        self._armas_e_dash(tela, jogador)
 
     # Blocos do HUD
+
+    def _combo(self, tela, combo):
+        """Medidor de combo (só aparece com 2 abates seguidos ou mais)."""
+        if combo is None or not combo.ativo:
+            return
+
+        texto(tela, f"COMBO  x{combo.multiplicador}", 22, COR_DESTAQUE,
+              (LARGURA - 18, 112), direita=True)
+        desenhar_barra(tela, LARGURA - 218, 142, 200, 8,
+                       combo.fracao_restante, 1, COR_DESTAQUE)
+
+    def _armas_e_dash(self, tela, jogador):
+        """Armas (com munição) e recarga do dash, no canto inferior."""
+        base_y = ALTURA - 76
+        _painel(tela, pygame.Rect(18, base_y, 436, 60))
+
+        for i, arma in enumerate(jogador.armas):
+            ativo = i == jogador.indice_arma
+            slot = pygame.Rect(28 + i * 148, base_y + 10, 140, 40)
+
+            pygame.draw.rect(tela, (20, 34, 50) if ativo else (14, 18, 26),
+                             slot, border_radius=8)
+            pygame.draw.rect(tela, COR_CIANO if ativo else COR_BORDA, slot, 2,
+                             border_radius=8)
+
+            cor = COR_TEXTO if arma.disponivel else (90, 98, 112)
+            municao = ("INF" if arma.infinita
+                       else f"{arma.municao}/{arma.MUNICAO_MAX}")
+
+            texto(tela, str(i + 1), 12, COR_TEXTO_SUAVE,
+                  (slot.x + 8, slot.y + 5))
+            texto(tela, arma.NOME, 13, cor, (slot.x + 22, slot.y + 4))
+            texto(tela, municao, 16, cor, (slot.x + 22, slot.y + 20))
+
+        # Dash
+        pronto = jogador.dash_pronto
+        texto(tela, "DASH  (SHIFT)", 12,
+              COR_CIANO if pronto else COR_TEXTO_SUAVE, (332, base_y + 12))
+        desenhar_barra(tela, 332, base_y + 32, 110, 12, jogador.dash_fracao,
+                       1, COR_CIANO if pronto else (70, 96, 124))
 
     def _painel_jogador(self, tela, jogador):
         _painel(tela, pygame.Rect(18, 14, 330, 78))

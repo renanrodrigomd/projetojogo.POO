@@ -34,6 +34,7 @@ class ResumoPartida:
     estrelas: int = 0
     bonus: int = 0
     checkpoint: EstadoCheckpoint = None
+    maior_combo: int = 0
 
     @property
     def numero_fase(self):

@@ -3,13 +3,14 @@
   "nome": "Rua Destruída",
   "largura": 3600,
   "final": 3300,
-  "tempo_tres_estrelas": 32,
-  "tempo_duas_estrelas": 48,
+  "tempo_tres_estrelas": 34,
+  "tempo_duas_estrelas": 50,
   "destrocos": 0.8,
   "inimigos": [
     {"tipo": "terrestre", "x": 900},
     {"tipo": "terrestre", "x": 1750},
-    {"tipo": "explosivo", "x": 2550}
+    {"tipo": "explosivo", "x": 2550},
+    {"tipo": "terrestre", "x": 2640}
   ],
   "plataformas": [
     {"x": 800,  "y": 500, "largura": 180},
@@ -30,6 +31,7 @@
   ],
   "itens": [
     {"tipo": "relogio", "x": 880,  "y": 500},
+    {"tipo": "municao", "x": 2230, "y": 500},
     {"tipo": "escudo",  "x": 2410, "y": 390},
     {"tipo": "vida",    "x": 2900}
   ]

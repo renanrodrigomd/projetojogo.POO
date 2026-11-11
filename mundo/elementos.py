@@ -508,3 +508,27 @@ class RelogioTempo(Item):
         pygame.draw.circle(tela, COR_DESTAQUE, (x, y), 9, 2)
         pygame.draw.line(tela, COR_DESTAQUE, (x, y), (x, y - 6), 2)
         pygame.draw.line(tela, COR_DESTAQUE, (x, y), (x + 5, y + 2), 2)
+
+
+class MunicaoEspingarda(Item):
+    COR = (255, 150, 60)
+    QUANTIDADE = 6
+
+    def pode_coletar(self, jogador):
+        # Não gasta o item se a munição já está cheia
+        arma = jogador.arma_especial
+        return arma.municao < arma.MUNICAO_MAX
+
+    def aplicar(self, jogador):
+        ganho = jogador.adicionar_municao_especial(self.QUANTIDADE)
+        return ResultadoItem(f"ESPINGARDA +{ganho}", (255, 170, 80))
+
+    def _icone(self, tela, centro):
+        x, y = centro
+
+        # Dois cartuchos de espingarda
+        for deslocamento in (-5, 5):
+            pygame.draw.rect(tela, (230, 80, 60),
+                             (x + deslocamento - 3, y - 8, 6, 12))
+            pygame.draw.rect(tela, (235, 190, 90),
+                             (x + deslocamento - 3, y + 4, 6, 5))

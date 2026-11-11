@@ -57,6 +57,14 @@ class Mundo:
         """True se o retângulo bate em alguma barreira (passos e tiros)."""
         return any(b.rect.colliderect(rect) for b in self._barreiras)
 
+    def superficie_em(self, rect):
+        """True se o retângulo toca uma plataforma ou barreira (as bombas
+        explodem ao encostar em qualquer superfície)."""
+        return any(
+            s.rect.colliderect(rect)
+            for s in self._plataformas + self._barreiras
+        )
+
     @staticmethod
     def _expulsar(jogador, rect_barreira):
         """Empurra o jogador para o lado mais próximo da barreira."""
