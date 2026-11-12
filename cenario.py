@@ -10,6 +10,13 @@ from ui.fontes import texto
 
 
 @functools.lru_cache(maxsize=1)
+def carregar_porta_saida():
+
+    porta = pygame.image.load(
+        asset("background", "PortadeSaida.png")
+    ).convert_alpha()
+
+    return pygame.transform.smoothscale(porta, (220,230))
 def carregar_imagens():
     """Carrega e redimensiona as imagens uma única vez (cache)."""
     fundo = pygame.image.load(
@@ -19,6 +26,7 @@ def carregar_imagens():
         fundo, (int(fundo.get_width() * 0.95), int(fundo.get_height() * 0.95))
     )
 
+   
     chao = pygame.image.load(
         asset("background", "chaojogo.png")
     ).convert_alpha()
@@ -34,6 +42,7 @@ class Cenario:
 
     def __init__(self):
         self._fundo, self._chao = carregar_imagens()
+        self._porta_saida = carregar_porta_saida()
 
     def desenhar_fundo(self, tela, camera_x, camera_y):
         largura_fundo = self._fundo.get_width()
@@ -65,28 +74,23 @@ class Cenario:
     def desenhar_saida(self, tela, camera_x, final, liberada):
         """Portal de saída. Fica azul quando a área está limpa e
         vermelho enquanto ainda há robôs vivos."""
-        x = final - camera_x
+        largura = self._porta_saida.get_width()
+        altura = self._porta_saida.get_height()
 
-        if not (-100 < x < LARGURA + 100):
-            return
+        x = int(final - camera_x - largura / 2)
+        y = int(CHAO_Y - altura + 5)
 
-        cor = (80, 210, 255) if liberada else (200, 90, 90)
-        cor_texto = (150, 230, 255) if liberada else (240, 150, 150)
+        if x > LARGURA or x + largura < 0:
+           return
 
-        pygame.draw.rect(
-            tela, (15, 25, 35),
-            (x, CHAO_Y - 155, 95, 155), border_radius=12
-        )
-        pygame.draw.rect(
-            tela, cor,
-            (x + 8, CHAO_Y - 147, 79, 147), 4, border_radius=10
-        )
+        tela.blit(self._porta_saida, (x, y))
 
-        for i in range(4):
-            yy = CHAO_Y - 125 + i * 30
-            pygame.draw.line(tela, cor, (x + 20, yy), (x + 75, yy), 3)
+        cor = (100, 235, 150) if liberada else (245, 105, 95)
+
+        estado = "SAÍDA LIBERADA" if liberada else "ÁREA BLOQUEADA"
 
         texto(
-            tela, "SAÍDA" if liberada else "BLOQUEADA", 18, cor_texto,
-            (x + 47, CHAO_Y - 180), centralizado=True
-        )
+            tela, estado, 16, cor,
+            (x + largura // 2, y - 18),
+            centralizado=True
+       )
