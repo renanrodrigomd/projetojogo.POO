@@ -3,12 +3,11 @@
   "nome": "Ponte Central",
   "largura": 4600,
   "final": 4300,
-  "tempo_tres_estrelas": 50,
-  "tempo_duas_estrelas": 72,
+  "tempo_tres_estrelas": 45,
+  "tempo_duas_estrelas": 65,
   "destrocos": 1.0,
   "inimigos": [
     {"tipo": "terrestre", "x": 1000},
-    {"tipo": "escudeiro", "x": 1550},
     {"tipo": "aereo",     "x": 1700, "altura": 220},
     {"tipo": "explosivo", "x": 2700},
     {"tipo": "blindado",  "x": 3500}
@@ -40,7 +39,6 @@
   ],
   "itens": [
     {"tipo": "relogio", "x": 820,  "y": 500},
-    {"tipo": "municao", "x": 2160, "y": 500},
     {"tipo": "vida",    "x": 1250},
     {"tipo": "escudo",  "x": 2310, "y": 500},
     {"tipo": "vida",    "x": 3150},

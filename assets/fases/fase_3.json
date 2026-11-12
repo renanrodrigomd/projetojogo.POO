@@ -3,15 +3,13 @@
   "nome": "Complexo Robótico",
   "largura": 5600,
   "final": 5300,
-  "tempo_tres_estrelas": 72,
-  "tempo_duas_estrelas": 100,
+  "tempo_tres_estrelas": 60,
+  "tempo_duas_estrelas": 85,
   "destrocos": 1.3,
   "inimigos": [
     {"tipo": "terrestre", "x": 800},
     {"tipo": "explosivo", "x": 1600},
-    {"tipo": "escudeiro", "x": 2200},
     {"tipo": "aereo",     "x": 2400, "altura": 220},
-    {"tipo": "bombardeiro", "x": 3000, "altura": 260},
     {"tipo": "terrestre", "x": 3200},
     {"tipo": "blindado",  "x": 4100},
     {"tipo": "aereo",     "x": 4700, "altura": 240}
@@ -53,8 +51,6 @@
     {"tipo": "relogio", "x": 1530, "y": 390},
     {"tipo": "vida",    "x": 2050},
     {"tipo": "escudo",  "x": 2410, "y": 500},
-    {"tipo": "municao", "x": 3030, "y": 500},
-    {"tipo": "municao", "x": 3980},
     {"tipo": "vida",    "x": 3450, "y": 500},
     {"tipo": "escudo",  "x": 4940, "y": 500},
     {"tipo": "relogio", "x": 5110, "y": 390}

@@ -10,11 +10,10 @@ import json
 from caminhos import asset
 from Inimigos import (
     InimigoTerrestre, InimigoAereo, InimigoBlindado, InimigoExplosivo,
-    InimigoEscudeiro, InimigoBombardeiro,
 )
 from mundo.elementos import (
     Plataforma, Barreira, PocaEnergia, PilarEletrico, Checkpoint,
-    KitVida, Escudo, RelogioTempo, MunicaoEspingarda,
+    KitVida, Escudo, RelogioTempo,
 )
 from mundo.fase import Fase
 
@@ -28,8 +27,6 @@ TIPOS_INIMIGO = {
     "aereo": InimigoAereo,
     "blindado": InimigoBlindado,
     "explosivo": InimigoExplosivo,
-    "escudeiro": InimigoEscudeiro,
-    "bombardeiro": InimigoBombardeiro,
 }
 
 # categoria -> {tipo: classe}. None = categoria sem subtipos.
@@ -38,10 +35,7 @@ REGISTRO = {
     "barreiras": {None: Barreira},
     "perigos": {"poca": PocaEnergia, "pilar": PilarEletrico},
     "checkpoints": {None: Checkpoint},
-    "itens": {
-        "vida": KitVida, "escudo": Escudo, "relogio": RelogioTempo,
-        "municao": MunicaoEspingarda,
-    },
+    "itens": {"vida": KitVida, "escudo": Escudo, "relogio": RelogioTempo},
 }
 
 
@@ -69,10 +63,7 @@ def _ler_inimigos(dados, largura, arquivo):
         if not 0 <= x <= largura:
             raise ErroDeFase(f"{contexto}: x={x} fora do mapa (0 a {largura}).")
 
-        altura = item.get(
-            "altura",
-            {"aereo": 220, "bombardeiro": 260}.get(tipo, 0)
-        )
+        altura = item.get("altura", 220 if tipo == "aereo" else 0)
         inimigos.append((TIPOS_INIMIGO[tipo], x, altura))
 
     return inimigos

@@ -3,18 +3,45 @@ import math
 import pygame
 
 from Personagem import Personagem
-from mecanicas.armas import Pistola, Espingarda
+from caminhos import asset
+
+# --- Sprites do jogador andando -------------------------------------------
+# 12 quadros (andando_00.png ... andando_11.png) em assets/player/andando/,
+# fatiados de Jogadorspriteandandodireita.png. Olham para a direita; para a
+# esquerda os quadros são espelhados.
+QUANTIDADE_FRAMES_ANDANDO = 12
+ALTURA_SPRITE = 76  # px na tela (a hitbox tem 60; a cabeça passa um pouco)
+
+_sprites_andando = None  # (direita, esquerda) ou [] se falhou
+
+
+def carregar_sprites_andando():
+    """Carrega e cacheia os quadros. Devolve ([direita], [esquerda]) ou
+    None se algum arquivo faltar (aí o jogo usa o desenho por formas)."""
+    global _sprites_andando
+
+    if _sprites_andando is not None:
+        return _sprites_andando or None
+
+    try:
+        direita = []
+        for i in range(QUANTIDADE_FRAMES_ANDANDO):
+            img = pygame.image.load(
+                asset("player", "andando", f"andando_{i:02d}.png")
+            ).convert_alpha()
+            largura = round(img.get_width() * ALTURA_SPRITE / img.get_height())
+            direita.append(
+                pygame.transform.smoothscale(img, (largura, ALTURA_SPRITE))
+            )
+        esquerda = [pygame.transform.flip(f, True, False) for f in direita]
+        _sprites_andando = (direita, esquerda)
+    except (pygame.error, FileNotFoundError):
+        _sprites_andando = []
+
+    return _sprites_andando or None
 
 
 class Player(Personagem):
-    # Dash: arrancada curta na horizontal, invulnerável, com recarga
-    DASH_DURACAO = 160       # ms
-    DASH_RECARGA = 1100      # ms (conta a partir do início do dash)
-    DASH_VELOCIDADE = 14     # pixels por quadro
-
-    # Pulo variável: soltar a tecla corta a subida
-    VELOCIDADE_CORTE_PULO = -4.0
-
     def __init__(self, x=100, y=550, chao_y=610, largura_mapa=10000):
         super().__init__(x, y)
 
@@ -41,20 +68,14 @@ class Player(Personagem):
         self.cooldown_tiro = 500
         self.largura_mapa = largura_mapa
 
-        # Armas (a [0] é a pistola, sempre disponível; a [1] precisa de munição)
-        self._armas = [Pistola(), Espingarda()]
-        self._indice_arma = 0
-
-        # Dash
-        self._dash_restante = 0
-        self._dash_recarga = 0
-        self._dash_direcao = 1
-        self._rastro_dash = []
-
         self.movendo = False
         self.tempo_animacao = 0
-        self.velocidade_animacao = 100
+        self.velocidade_animacao = 70  # ms por quadro
         self.frame_atual = 0
+        self._sprites = carregar_sprites_andando()
+        self._total_frames = (
+            len(self._sprites[0]) if self._sprites else 2
+        )
 
     @property
     def vida(self):
@@ -83,136 +104,6 @@ class Player(Personagem):
     def atualizar_escudo(self, dt):
         self._escudo_restante = max(0, self._escudo_restante - dt)
 
-    # ---- Armas
-
-    @property
-    def armas(self):
-        return tuple(self._armas)
-
-    @property
-    def indice_arma(self):
-        return self._indice_arma
-
-    @property
-    def arma_atual(self):
-        return self._armas[self._indice_arma]
-
-    @property
-    def arma_especial(self):
-        return self._armas[1]
-
-    def selecionar_arma(self, indice):
-        if 0 <= indice < len(self._armas) and self._armas[indice].disponivel:
-            self._indice_arma = indice
-            return True
-
-        return False
-
-    def trocar_arma(self, passo=1):
-        """Passa para a próxima (passo=1) ou anterior (passo=-1) arma
-        disponível. Devolve True se trocou."""
-        total = len(self._armas)
-
-        for k in range(1, total):
-            indice = (self._indice_arma + passo * k) % total
-
-            if self._armas[indice].disponivel:
-                self._indice_arma = indice
-                return True
-
-        return False
-
-    def adicionar_municao_especial(self, quantidade):
-        """Devolve quantas balas entraram. Na primeira coleta, já equipa
-        a espingarda para o jogador perceber a arma nova."""
-        estava_sem = not self.arma_especial.disponivel
-        ganho = self.arma_especial.adicionar_municao(quantidade)
-
-        if estava_sem and ganho:
-            self._indice_arma = 1
-
-        return ganho
-
-    def atirar(self):
-        """Dispara a arma atual na direção da mira. True se atirou."""
-        vetores = {
-            "a": (-1, 0), "d": (1, 0),
-            "aw": (-1, -1), "dw": (1, -1), "w": (0, -1),
-        }
-
-        dx, dy = vetores[self.direcao_olhar]
-        x = self.posx + self.largura // 2
-        y = self.posy + self.altura // 2
-
-        novos = self.arma_atual.disparar(x, y, dx, dy)
-        self.tiros.extend(novos)
-
-        # Acabou a munição: volta para a pistola
-        if not self.arma_atual.disponivel:
-            self._indice_arma = 0
-
-        return bool(novos)
-
-    # ---- Dash
-
-    @property
-    def esta_dashando(self):
-        return self._dash_restante > 0
-
-    @property
-    def dash_pronto(self):
-        return self._dash_recarga <= 0
-
-    @property
-    def dash_fracao(self):
-        """0.0 = acabou de usar, 1.0 = pronto de novo."""
-        return 1 - self._dash_recarga / self.DASH_RECARGA
-
-    @property
-    def rastro_dash(self):
-        return tuple(self._rastro_dash)
-
-    def iniciar_dash(self):
-        if not self.dash_pronto:
-            return False
-
-        teclas = pygame.key.get_pressed()
-        esquerda = teclas[pygame.K_a] or teclas[pygame.K_LEFT]
-        direita = teclas[pygame.K_d] or teclas[pygame.K_RIGHT]
-
-        if esquerda and not direita:
-            self._dash_direcao = -1
-        elif direita and not esquerda:
-            self._dash_direcao = 1
-        else:
-            self._dash_direcao = -1 if self.ultima_horizontal == "a" else 1
-
-        self._dash_restante = self.DASH_DURACAO
-        self._dash_recarga = self.DASH_RECARGA
-        return True
-
-    def cortar_pulo(self):
-        """Soltar a tecla de pulo no meio da subida encurta o salto."""
-        if self.velocidade_y < self.VELOCIDADE_CORTE_PULO:
-            self.velocidade_y = self.VELOCIDADE_CORTE_PULO
-
-    def atualizar_timers(self, dt):
-        """Escudo, dash e recarga das armas (dt em ms; pausa-seguro)."""
-        self.atualizar_escudo(dt)
-
-        self._dash_restante = max(0, self._dash_restante - dt)
-        self._dash_recarga = max(0, self._dash_recarga - dt)
-
-        for arma in self._armas:
-            arma.atualizar(dt)
-
-        # Rastro visual do dash
-        if self.esta_dashando:
-            self._rastro_dash.append((self.posx, self.posy))
-            del self._rastro_dash[:-5]
-        elif self._rastro_dash:
-            self._rastro_dash.pop(0)
-
     def restaurar_vida(self):
         self._vida = self._vida_max
         self.invulneravel = False
@@ -221,7 +112,7 @@ class Player(Personagem):
         self._vida = min(self._vida_max, self._vida + quantidade)
 
     def receber_dano(self):
-        if self.invulneravel or self.escudo_ativo or self.esta_dashando:
+        if self.invulneravel or self.escudo_ativo:
             return
 
         self._vida = max(0, self._vida - 1)
@@ -229,14 +120,6 @@ class Player(Personagem):
         self.tempo_invulnerabilidade = pygame.time.get_ticks()
 
     def mover(self):
-        if self.esta_dashando:
-            self.posx += self._dash_direcao * self.DASH_VELOCIDADE
-            self.movendo = True
-            self.ultima_horizontal = "d" if self._dash_direcao > 0 else "a"
-            self.direcao_olhar = self.ultima_horizontal
-            self.posx = max(0, min(self.posx, self.largura_mapa - self.largura))
-            return
-
         teclas = pygame.key.get_pressed()
 
         esquerda = teclas[pygame.K_a] or teclas[pygame.K_LEFT]
@@ -287,12 +170,9 @@ class Player(Personagem):
             if agora - self.tempo_invulnerabilidade >= self.duracao_invulnerabilidade:
                 self.invulneravel = False
 
-        # Física do salto e da queda (o dash flutua em linha reta).
-        if self.esta_dashando:
-            self.velocidade_y = 0
-        else:
-            self.velocidade_y += self.gravidade
-            self.posy += self.velocidade_y
+        # Física do salto e da queda.
+        self.velocidade_y += self.gravidade
+        self.posy += self.velocidade_y
 
         if self.posy + self.altura >= self.chao_y:
             self.posy = self.chao_y - self.altura
@@ -301,15 +181,27 @@ class Player(Personagem):
         else:
             self.no_chao = False
 
-        # Animação simples feita com formas do Pygame.
+        # Avança o quadro da caminhada (sprites; ou 2 poses se sem imagens).
         if self.movendo and self.no_chao:
             if agora - self.tempo_animacao >= self.velocidade_animacao:
-                self.frame_atual = (self.frame_atual + 1) % 2
+                self.frame_atual = (self.frame_atual + 1) % self._total_frames
                 self.tempo_animacao = agora
         else:
             self.frame_atual = 0
 
         self.atualizar_tiros()
+
+    def _desenhar_sprite(self, tela, x, y):
+        """Desenha o quadro atual com os pés na base da hitbox."""
+        olhando_esquerda = self.direcao_olhar in ("a", "aw")
+        lista = self._sprites[1] if olhando_esquerda else self._sprites[0]
+
+        # No ar ou parado fica no quadro 0 (frame_atual já é 0 nesses casos).
+        sprite = lista[self.frame_atual % len(lista)]
+
+        px = x + self.largura // 2 - sprite.get_width() // 2
+        py = y + self.altura - sprite.get_height()
+        tela.blit(sprite, (px, py))
 
     def desenhar(self, tela, camera_x=0, camera_y=0):
         agora = pygame.time.get_ticks()
@@ -322,6 +214,12 @@ class Player(Personagem):
 
         x = round(self.posx - camera_x)
         y = round(self.posy - camera_y)
+
+        if self._sprites:
+            self._desenhar_sprite(tela, x, y)
+            for tiro in self.tiros:
+                tiro.desenhar(tela, camera_x, camera_y)
+            return
 
         centro_x = x + self.largura // 2
 

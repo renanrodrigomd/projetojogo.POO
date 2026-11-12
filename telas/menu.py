@@ -79,11 +79,9 @@ class ComoJogar(Tela):
 
     CONTROLES = [
         ("A / D   ou   ← / →", "Mover"),
-        ("ESPAÇO   ou   W / ↑", "Pular (segure para pular mais alto)"),
+        ("ESPAÇO   ou   W / ↑", "Pular"),
         ("K", "Atirar"),
         ("W / ↑  (segurando)", "Mirar para cima (também na diagonal)"),
-        ("SHIFT", "Dash: arrancada invulnerável (recarrega)"),
-        ("Q / E   ou   1 / 2", "Trocar de arma"),
         ("ESC   ou   P", "Pausar"),
     ]
 
@@ -91,9 +89,7 @@ class ComoJogar(Tela):
         ("Robô Terrestre", "Atira de longe. Pule os disparos.", COR_CIANO),
         ("Drone Aéreo", "Ataca de cima. Atire para cima.", (130, 190, 255)),
         ("Robô Blindado", "Aguenta 8 tiros. Atire de longe.", COR_DESTAQUE),
-        ("Robô Explosivo", "Explode em área. Derrube-o de longe!", COR_PERIGO),
-        ("Robô Escudeiro", "Escudo barra tiros de frente. Use o dash.", (90, 205, 255)),
-        ("Drone Bombardeiro", "Solta bombas. Saia de baixo e atire para cima.", (170, 150, 210)),
+        ("Robô Explosivo", "Corre quando atingido. Derrube-o longe.", COR_PERIGO),
     ]
 
     def __init__(self, gerenciador):
@@ -122,27 +118,23 @@ class ComoJogar(Tela):
         texto(superficie, "Elimine todos os robôs e chegue à saída da fase.",
               17, COR_TEXTO_SUAVE, (LARGURA // 2, 145), True, negrito=False)
 
-        texto(superficie, "CONTROLES", 16, COR_DESTAQUE, (190, 178))
+        texto(superficie, "CONTROLES", 16, COR_DESTAQUE, (190, 185))
         for i, (tecla, acao) in enumerate(self.CONTROLES):
-            y = 202 + i * 29
-            texto(superficie, tecla, 17, COR_TEXTO, (190, y))
-            texto(superficie, acao, 17, COR_TEXTO_SUAVE, (500, y),
+            y = 218 + i * 34
+            texto(superficie, tecla, 18, COR_TEXTO, (190, y))
+            texto(superficie, acao, 18, COR_TEXTO_SUAVE, (520, y),
                   negrito=False)
 
-        texto(superficie, "INIMIGOS", 16, COR_DESTAQUE, (190, 410))
+        texto(superficie, "INIMIGOS", 16, COR_DESTAQUE, (190, 415))
         for i, (nome, descricao, cor) in enumerate(self.INIMIGOS):
-            y = 436 + i * 27
-            pygame.draw.circle(superficie, cor, (198, y + 9), 6)
-            texto(superficie, nome, 16, COR_TEXTO, (216, y))
-            texto(superficie, descricao, 16, COR_TEXTO_SUAVE, (430, y),
+            y = 448 + i * 32
+            pygame.draw.circle(superficie, cor, (198, y + 10), 6)
+            texto(superficie, nome, 18, COR_TEXTO, (216, y))
+            texto(superficie, descricao, 18, COR_TEXTO_SUAVE, (470, y),
                   negrito=False)
-
-        texto(superficie,
-              "COMBO: abates seguidos multiplicam os pontos e tiram 1 s do relógio.",
-              15, COR_DESTAQUE, (LARGURA // 2, 604), True, negrito=False)
 
         texto(superficie, "ESC  •  voltar", 15, COR_TEXTO_SUAVE,
-              (LARGURA // 2, 626), True)
+              (LARGURA // 2, ALTURA - 82), True)
 
 
 class Creditos(Tela):
